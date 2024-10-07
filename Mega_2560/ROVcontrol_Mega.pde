@@ -17,7 +17,7 @@ Arduino ard0;
 float foreaft;
 float strafe;
 float lift;
-float liftadj;
+//float liftadj;
 float turn;
 
 //Final motor speed calculations
@@ -121,13 +121,13 @@ void setup () {
   ard0 = new Arduino(this, Arduino.list()[2], 57600);
   
   //Sets all the PWM pins to output PWM, this way it won't ever need to be changed later. 
-  ard0.pinMode(4, Arduino.SERVO); 
-  ard0.pinMode(8, Arduino.SERVO); 
-  ard0.pinMode(9, Arduino.SERVO); 
-  ard0.pinMode(10, Arduino.SERVO); 
-  ard0.pinMode(11, Arduino.SERVO); 
-  ard0.pinMode(12, Arduino.SERVO); 
-  ard0.pinMode(13, Arduino.SERVO); 
+  ard0.pinMode(camTip, Arduino.SERVO); 
+  ard0.pinMode(backRightThruster, Arduino.SERVO); 
+  ard0.pinMode(backLeftThruster, Arduino.SERVO); 
+  ard0.pinMode(midRightThruster, Arduino.SERVO); 
+  ard0.pinMode(midLeftThruster, Arduino.SERVO); 
+  ard0.pinMode(frontRightThruster, Arduino.SERVO); 
+  ard0.pinMode(frontLeftThruster, Arduino.SERVO); 
  
   control = ControlIO.getInstance(this);
   
