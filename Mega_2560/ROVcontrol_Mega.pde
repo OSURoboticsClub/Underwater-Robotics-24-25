@@ -132,7 +132,7 @@ void setup () {
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("rovcontrol");
+  cont = control.getMatchedDevice("lgcontrol");
   
   //sets the slowing variables to default to fast mode
   vslow = false;
@@ -241,22 +241,24 @@ public void getUserInput() {
   }  
   
   //Uses the dpad to get PH camera motion commands
-  if (cont.getHat("hat").getValue() == 2) {
+  if (cont.getHat("camup").getValue() == 2) {
     if (camang < 179) {
       camang += 1;
     }
   }
-  if (cont.getHat("hat").getValue() == 6) {
+  if (cont.getHat("camup").getValue() == 6) {
     if (camang > 0) {
       camang -= 1;
     }
   }  
-  if (cont.getHat("hat").getValue() == 8) {
+  if (cont.getHat("camup").getValue() == 8) {
     camang = 90;
   }  
   
 }
 
+GamepadEx a = new GamepadEx();
+int counter = 0;
 void draw() {
  
   getUserInput();
@@ -277,6 +279,11 @@ void draw() {
   
   //Populates the window with control information
   //background(141, 76, 34);
-
-
-}  
+  //println("Hello world!");
+  a.updateButton(cont.getButton("main").getValue()!=0);
+  if(a.isPressed()) {
+    counter++;
+    println(counter);
+  }
+  
+} 

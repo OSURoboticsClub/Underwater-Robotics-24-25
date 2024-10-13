@@ -5,4 +5,4 @@ lift	Drives up and down with the right stick's Y-axis	3	SLIDER	Y Rotation	0	1.0	
 turn	Turns left and right using the right stick's X-axis	3	SLIDER	X Rotation	0	1.0	0.0
 vslow	Makes the vertical motion slower by pressing the right stick	1	BUTTON	Button 9	0	0.0	0.0
 lslow	Makes the lateral movement slower by pressing the left stick	1	BUTTON	Button 8	0	0.0	0.0
-hat	Gets the value from the d-pad	2	HAT	cooliehat: Hat Switch	0	1.0	0.0
+camup	Gets the value from the d-pad	2	HAT	cooliehat: Hat Switch	0	1.0	0.0
