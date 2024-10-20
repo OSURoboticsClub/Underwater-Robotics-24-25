@@ -17,7 +17,7 @@ Arduino ard0;
 float foreaft;
 float strafe;
 float lift;
-float liftadj;
+//float liftadj;
 float turn;
 
 //Final motor speed calculations
@@ -121,18 +121,18 @@ void setup () {
   ard0 = new Arduino(this, Arduino.list()[2], 57600);
   
   //Sets all the PWM pins to output PWM, this way it won't ever need to be changed later. 
-  ard0.pinMode(4, Arduino.SERVO); 
-  ard0.pinMode(8, Arduino.SERVO); 
-  ard0.pinMode(9, Arduino.SERVO); 
-  ard0.pinMode(10, Arduino.SERVO); 
-  ard0.pinMode(11, Arduino.SERVO); 
-  ard0.pinMode(12, Arduino.SERVO); 
-  ard0.pinMode(13, Arduino.SERVO); 
+  ard0.pinMode(camTip, Arduino.SERVO); 
+  ard0.pinMode(backRightThruster, Arduino.SERVO); 
+  ard0.pinMode(backLeftThruster, Arduino.SERVO); 
+  ard0.pinMode(midRightThruster, Arduino.SERVO); 
+  ard0.pinMode(midLeftThruster, Arduino.SERVO); 
+  ard0.pinMode(frontRightThruster, Arduino.SERVO); 
+  ard0.pinMode(frontLeftThruster, Arduino.SERVO); 
  
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("rovcontrol");
+  cont = control.getMatchedDevice("lgcontrol");
   
   //sets the slowing variables to default to fast mode
   vslow = false;
@@ -241,22 +241,24 @@ public void getUserInput() {
   }  
   
   //Uses the dpad to get PH camera motion commands
-  if (cont.getHat("hat").getValue() == 2) {
+  if (cont.getHat("camup").getValue() == 2) {
     if (camang < 179) {
       camang += 1;
     }
   }
-  if (cont.getHat("hat").getValue() == 6) {
+  if (cont.getHat("camup").getValue() == 6) {
     if (camang > 0) {
       camang -= 1;
     }
   }  
-  if (cont.getHat("hat").getValue() == 8) {
+  if (cont.getHat("camup").getValue() == 8) {
     camang = 90;
   }  
   
 }
 
+GamepadEx a = new GamepadEx();
+int counter = 0;
 void draw() {
  
   getUserInput();
@@ -277,6 +279,11 @@ void draw() {
   
   //Populates the window with control information
   //background(141, 76, 34);
-
-
-}  
+  //println("Hello world!");
+  a.updateButton(cont.getButton("main").getValue()!=0);
+  if(a.isPressed()) {
+    counter++;
+    println(counter);
+  }
+  
+} 
