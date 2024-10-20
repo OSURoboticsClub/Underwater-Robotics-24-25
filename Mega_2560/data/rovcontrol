@@ -1,15 +1,16 @@
 Controller to control the DAM Robotics ROV for the 24-25 MATE Explorer Season
-foreaft	Drives the ROV forward and backward with the left stick Y-axis	3	SLIDER	Y Axis	0	1.0	0.0
-strafe	Stafe left and right using the left stick's X-axis______	3	SLIDER	X Axis	0	1.0	0.0
-lift	Drives up and down with the right stick's Y-axis________	3	SLIDER	Y Rotation	0	1.0	0.0
-turn	Turns left and right using the right stick's X-axis_____	3	SLIDER	X Rotation	0	1.0	0.0
-vslow	Makes the vertical motion slower by pressing the right stick	1	BUTTON	Button 9	0	0.0	0.0
-lslow	Makes the lateral movement slower by pressing the left stick	1	BUTTON	Button 8	0	0.0	0.0
-safore	Moves the sidearm forward with RT_______	3	SLIDER	Z Axis	0	1.0	0.0
-saback	Moves the sidearm backward with RB______	1	BUTTON	Button 5	0	0.0	0.0
-mainright	rotates the main claw right with LB	1	BUTTON	Button 4	0	0.0	0.0
-camup	Gets the value from the d-pad___________	2	HAT	cooliehat: Hat Switch	0	1.0	0.0
-main	Actuates the main manipulator claw with A	1	BUTTON	Button 0	0	0.0	0.0
-side	actuates the side manipulator with B____	1	BUTTON	Button 1	0	0.0	0.0
-maintipfore	tips the main claw foreward with Y	1	BUTTON	Button 3	0	0.0	0.0
-maintipaft	tips the main claw backward with X	1	BUTTON	Button 2	0	0.0	0.0
+lStickY	Drives the ROV forward and backward with the left stick Y-axis	3	SLIDER	Y Axis	0	1.0	0.0
+lStickX	Stafe left and right using the left stick's X-axis______	3	SLIDER	X Axis	0	1.0	0.0
+rStickY	Drives up and down with the right stick's Y-axis________	3	SLIDER	Z Rotation	0	1.0	0.0
+rStickX	Turns left and right using the right stick's X-axis_____	3	SLIDER	Z Axis	0	1.0	0.0
+rStickB	Makes the vertical motion slower by pressing the right stick	1	BUTTON	Button 11	0	0.0	0.0
+lStickB	Makes the lateral movement slower by pressing the left stick	1	BUTTON	Button 10	0	0.0	0.0
+rT	Moves the sidearm forward with RT_______	3	BUTTON	Button 7	0	1.0	0.0
+rB	Moves the sidearm backward with RB______	1	BUTTON	Button 5	0	0.0	0.0
+lT	rotates the main claw left with LT______	1	BUTTON	Button 6	0	0.0	0.0
+lB	rotates the main claw right with LB_____	1	BUTTON	Button 4	0	0.0	0.0
+d_Pad	Gets the value from the d-pad___________	2	HAT	cooliehat: Hat Switch	0	1.0	0.0
+a	Actuates the main manipulator claw with A	1	BUTTON	Button 1	0	0.0	0.0
+b	actuates the side manipulator with B____	1	BUTTON	Button 2	0	0.0	0.0
+y	tips the main claw foreward with Y______	1	BUTTON	Button 3	0	0.0	0.0
+x	tips the main claw backward with X______	1	BUTTON	Button 0	0	0.0	0.0

@@ -13,12 +13,39 @@ ControlIO control;
 
 Arduino ard0;
 
+GamepadEx a = new GamepadEx();
+GamepadEx b = new GamepadEx();
+GamepadEx x = new GamepadEx();
+GamepadEx y = new GamepadEx();
+
+GamepadEx lStickY = new GamepadEx();
+GamepadEx lStickX = new GamepadEx();
+GamepadEx rStickY = new GamepadEx();
+GamepadEx rStickX = new GamepadEx();
+
+GamepadEx lStickB = new GamepadEx();
+GamepadEx rStickB = new GamepadEx();
+
+GamepadEx lT = new GamepadEx();
+GamepadEx rT = new GamepadEx();
+GamepadEx lB = new GamepadEx();
+GamepadEx rB = new GamepadEx();
+
+GamepadEx dPadLeft = new GamepadEx();
+GamepadEx dPadRight = new GamepadEx();
+GamepadEx dPadUp = new GamepadEx();
+GamepadEx dPadDown = new GamepadEx();
+
+int dPad;
+
+
+
 //Storing controller button values
 float foreaft;
 float strafe;
 float lift;
-//float liftadj;
 float turn;
+//float liftadj;
 
 //Final motor speed calculations
 float mFL;  //Motor Front-Left
@@ -132,7 +159,7 @@ void setup () {
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("lgcontrol");
+  cont = control.getMatchedDevice("rovcontrol");
   
   //sets the slowing variables to default to fast mode
   vslow = false;
@@ -149,7 +176,35 @@ void setup () {
   
 }
 
+public void updateGamepadEx() {
+  lStickY.updateButton(Math.abs(cont.getSlider("lStickY").getValue())>0.05);
+  lStickX.updateButton(Math.abs(cont.getSlider("lStickX").getValue())>0.05);
+  rStickY.updateButton(Math.abs(cont.getSlider("rStickY").getValue())>0.05);
+  rStickX.updateButton(Math.abs(cont.getSlider("rStickX").getValue())>0.05);
+  
+  lStickB.updateButton(cont.getButton("lStickB").getValue()!=0);
+  rStickB.updateButton(cont.getButton("rStickB").getValue()!=0);
+  
+  rT.updateButton(cont.getButton("rT").getValue()!=0);
+  rB.updateButton(cont.getButton("rB").getValue()!=0);
+  lT.updateButton(cont.getButton("lT").getValue()!=0);
+  lB.updateButton(cont.getButton("lB").getValue()!=0);
+  
+  a.updateButton(cont.getButton("a").getValue()!=0);
+  b.updateButton(cont.getButton("b").getValue()!=0);
+  x.updateButton(cont.getButton("x").getValue()!=0);
+  y.updateButton(cont.getButton("y").getValue()!=0);
+  
+  dPadLeft.updateButton(dPad==1 || dPad==8 || dPad==7);
+  dPadRight.updateButton(dPad==3 || dPad==4 || dPad==5);
+  dPadUp.updateButton(dPad==1 || dPad==2 || dPad==3);
+  dPadDown.updateButton(dPad==5 || dPad==6 || dPad==7);
+}
+
 public void getUserInput() {
+  dPad = (int) cont.getHat("d_Pad").getValue();
+  
+  updateGamepadEx();
   
   //toggles the lateral motion slowing
   if (lmspress == false) {
@@ -257,8 +312,6 @@ public void getUserInput() {
   
 }
 
-GamepadEx a = new GamepadEx();
-int counter = 0;
 void draw() {
  
   getUserInput();
@@ -280,10 +333,16 @@ void draw() {
   //Populates the window with control information
   //background(141, 76, 34);
   //println("Hello world!");
-  a.updateButton(cont.getButton("main").getValue()!=0);
-  if(a.isPressed()) {
-    counter++;
-    println(counter);
-  }
+    a.updateButton(cont.getButton("main").getValue()!=0);
+    b.updateButton(cont.getButton("side").getValue()!=0);
+    b.setToggle(true);
+    print(mBL);
+    print("   ");
+    print(mBR);
+    print("   ");
+    print(mFL);
+    print("   ");
+    println(mFR);
+  
   
 } 
