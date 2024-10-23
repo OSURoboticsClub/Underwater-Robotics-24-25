@@ -13,30 +13,31 @@ ControlIO control;
 
 Arduino ard0;
 
-GamepadEx lStickYActivity = new GamepadEx();
-GamepadEx lStickXActivity = new GamepadEx();
-GamepadEx rStickYActivity = new GamepadEx();
-GamepadEx rStickXActivity = new GamepadEx();
-
-GamepadEx a = new GamepadEx();
-GamepadEx b = new GamepadEx();
-GamepadEx x = new GamepadEx();
-GamepadEx y = new GamepadEx();
-
-GamepadEx lStickB = new GamepadEx();
-GamepadEx rStickB = new GamepadEx();
-
-GamepadEx lT = new GamepadEx();
-GamepadEx rT = new GamepadEx();
-GamepadEx lB = new GamepadEx();
-GamepadEx rB = new GamepadEx();
-
-GamepadEx dPadLeft = new GamepadEx();
-GamepadEx dPadRight = new GamepadEx();
-GamepadEx dPadUp = new GamepadEx();
-GamepadEx dPadDown = new GamepadEx();
 
 int dPad;
+GamepadEx lStickYActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("lStickY").getValue())>0.05;}});
+GamepadEx lStickXActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("lStickX").getValue())>0.05;}});
+GamepadEx rStickYActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("rStickY").getValue())>0.05;}});
+GamepadEx rStickXActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("rStickX").getValue())>0.05;}});
+
+GamepadEx a = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("a").getValue()!=0;}});
+GamepadEx b = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("b").getValue()!=0;}});
+GamepadEx x = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("x").getValue()!=0;}});
+GamepadEx y = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("y").getValue()!=0;}});
+
+GamepadEx lStickB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lStickB").getValue()!=0;}});
+GamepadEx rStickB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rStickB").getValue()!=0;}});
+
+GamepadEx lT = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lT").getValue()!=0;}});
+GamepadEx rT = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rT").getValue()!=0;}});
+GamepadEx lB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lB").getValue()!=0;}});
+GamepadEx rB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rB").getValue()!=0;}});
+
+GamepadEx dPadLeft  = new GamepadEx(new Button(){boolean inputCode(){return dPad==1 || dPad==8 || dPad==7;}});
+GamepadEx dPadRight = new GamepadEx(new Button(){boolean inputCode(){return dPad==3 || dPad==4 || dPad==5;}});
+GamepadEx dPadUp    = new GamepadEx(new Button(){boolean inputCode(){return dPad==1 || dPad==2 || dPad==3;}});
+GamepadEx dPadDown  = new GamepadEx(new Button(){boolean inputCode(){return dPad==5 || dPad==6 || dPad==7;}});
+
 
 
 
@@ -172,35 +173,9 @@ void setup () {
   
 }
 
-public void updateGamepadEx() {
-  lStickYActivity.updateButton(Math.abs(cont.getSlider("lStickY").getValue())>0.05);
-  lStickXActivity.updateButton(Math.abs(cont.getSlider("lStickX").getValue())>0.05);
-  rStickYActivity.updateButton(Math.abs(cont.getSlider("rStickY").getValue())>0.05);
-  rStickXActivity.updateButton(Math.abs(cont.getSlider("rStickX").getValue())>0.05);
-  
-  lStickB.updateButton(cont.getButton("lStickB").getValue()!=0);
-  rStickB.updateButton(cont.getButton("rStickB").getValue()!=0);
-  
-  rT.updateButton(cont.getButton("rT").getValue()!=0);
-  rB.updateButton(cont.getButton("rB").getValue()!=0);
-  lT.updateButton(cont.getButton("lT").getValue()!=0);
-  lB.updateButton(cont.getButton("lB").getValue()!=0);
-  
-  a.updateButton(cont.getButton("a").getValue()!=0);
-  b.updateButton(cont.getButton("b").getValue()!=0);
-  x.updateButton(cont.getButton("x").getValue()!=0);
-  y.updateButton(cont.getButton("y").getValue()!=0);
-  
-  dPadLeft.updateButton (dPad==1 || dPad==8 || dPad==7);
-  dPadRight.updateButton(dPad==3 || dPad==4 || dPad==5);
-  dPadUp.updateButton   (dPad==1 || dPad==2 || dPad==3);
-  dPadDown.updateButton (dPad==5 || dPad==6 || dPad==7);
-}
-
 public void getUserInput() {
   dPad = (int) cont.getHat("d_Pad").getValue();
-  
-  updateGamepadEx();
+  GamepadExManager.updateAll();
   
   //toggles the lateral motion slowing
   if(lStickB.isToggled()) {
