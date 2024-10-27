@@ -158,6 +158,13 @@ int frontRightVerticalThruster = 0;
 int backRightVerticalThruster = 0;
 
 int camTip = 4;
+
+PImage clawCl;
+PImage clawOp;
+PImage iso;
+PImage side;
+int lIndent = 25;
+
 /*
 Unassigned PWM Pins:
   esc: 6
@@ -168,6 +175,15 @@ Unassigned PWM Pins:
 
 void setup () {
   
+  //sets the size of the window that pops up when you press run
+  size(600,600);
+  textSize(25);
+  //loads the wireframe images to the variable names
+  clawCl = loadImage("RobotWireframeClawClosed.PNG");
+  clawOp = loadImage("RobotWireframeClawOpen.PNG");
+  iso = loadImage("RobotWireframeIso.PNG");
+  side = loadImage("RobotWireframeSide.PNG");
+      
   //println(Arduino.list());    //Uncomment this to make the code print the COM ports available, then switch
                                 //the information in the initialize line to the correct COM port list location
   
@@ -188,7 +204,7 @@ void setup () {
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("rovcontrol");
+  cont = control.getMatchedDevice("lgcontrol");
   
   //sets the slowing variables to default to fast mode
   vSlow = 0;
@@ -203,6 +219,19 @@ void setup () {
   //textSize(14);
   //fill(0, 100, 255);
   
+}
+
+//makes an entry in the window
+void addEntry(String title, int info, int x, int y) {
+  text(title + info, x, y);
+}
+ 
+ void addEntry(String title, boolean info, int x, int y) {
+  text(title + info, x, y);
+}
+  
+void addEntry(String title, float info, int x, int y) {
+  text(title + info, x, y);
 }
 
 public void getUserInput() {
@@ -416,6 +445,25 @@ void draw() {
   ard0.servoWrite(camTip, (int)camAng);
   
   //Populates the window with control information
+    //color of the backround in rgb
+  background(100, 200, 255);
+  addEntry("Left stick Y values: ", foreaft, lIndent, 50);
+  addEntry("Left stick X values: ", strafe, lIndent, 75);
+  addEntry("Camera Angle: ", camAng, lIndent, 100);
+  //addEntry("Thruster _ Value: ", , lIndent, 125);
+  //addEntry("Gyroscope: ", , lIndent, 100);
+  
+  //adds the wireframe images and applies them when applicable
+  //if(int(time%4) == 0){
+  //    image(side, 50, 175);
+  //  }else if(int(time%5) == 0) {
+  //    image(clawOp,50, 175);
+  //  }else if(int(time%6) == 0){
+  //    image(clawCl, 50, 175);
+  //  }else{
+  //    image(iso,50,175);
+  //  }
+    
   //background(141, 76, 34);
   //println("Hello world!");
   //print(camAng);
