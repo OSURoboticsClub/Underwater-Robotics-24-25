@@ -349,7 +349,7 @@ public void getUserInput() {
     roll = -1;
   } else {
     roll = 0;
-  } //<>//
+  } 
   
   vFLr = roll;
   vBLr = roll;
@@ -368,7 +368,7 @@ public void getUserInput() {
   
   vFLp = -yaw;
   vBLp = yaw;
-  vFRp = -yaw;
+  vFRp = -yaw; //<>//
   vBRp = yaw;
   
   //sums the commands to each thruster to determine final direction command
@@ -447,7 +447,7 @@ void draw() {
   //Populates the window with control information
     //color of the backround in rgb
   background(100, 200, 255);
-  addEntry("Left stick Y values: ", foreaft, lIndent, 50);
+  addEntry("Left stick Y values: ", forward, lIndent, 50);
   addEntry("Left stick X values: ", strafe, lIndent, 75);
   addEntry("Camera Angle: ", camAng, lIndent, 100);
   //addEntry("Thruster _ Value: ", , lIndent, 125);
@@ -475,5 +475,4 @@ void draw() {
   //print(rStickYActivity.isHeld());
   //print("   ");
   //println(millis());
-   //<>//
 } 
