@@ -90,7 +90,7 @@ int mainTip;
 int sidepos;
 
 //Motion of camera
-int camang = 90;
+int camAng = 90;
 
 
 /*
@@ -263,9 +263,9 @@ public void getUserInput() {
   //maps the commands to servo angle values
   //detects if the lateral slow is toggled on or off, cuts speed 50%
   mFL = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mBL = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mFR = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mBR = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mBL = map(mBL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mFR = map(mFR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mBR = map(mBR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
 
   //checks to see if the activity level is high enough, if so it sets the lift motor power to the appropriate value and otherwise sets it to 0 power
   if (rStickYActivity.isHeld()) {  
@@ -277,17 +277,17 @@ public void getUserInput() {
   
   //Uses the dpad to get PH camera motion commands
   if (dPadUp.isHeld()) {
-    if (camang < 179) {
-      camang += 1;
+    if (camAng < 179) {
+      camAng += 1;
     }
   }
   if (dPadDown.isHeld()) {
-    if (camang > 0) {
-      camang -= 1;
+    if (camAng > 0) {
+      camAng -= 1;
     }
   }
   if (dPadLeft.isPressed()) {
-    camang = 90;
+    camAng = 90;
   }
 }
 
@@ -306,16 +306,19 @@ void draw() {
   ard0.servoWrite(backRightThruster, (int)mBR);
   
   //Writes the camera angle
-  ard0.servoWrite(camTip, (int)camang);
+  ard0.servoWrite(camTip, (int)camAng);
   
   //Populates the window with control information
   //background(141, 76, 34);
   //println("Hello world!");
-  print(mBL);
-  print("   ");
-  print(mBR);
-  print("   ");
-  print(mFL);
-  print("   ");
-  println(mFR);
+  //print(camAng);
+  //print("   ");
+  //print(lStickYActivity.isHeld());
+  //print("   ");
+  //print(rStickXActivity.isHeld());
+  //print("   ");
+  //print(rStickYActivity.isHeld());
+  //print("   ");
+  //println(millis());
+   //<>//
 } 
