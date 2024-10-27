@@ -13,12 +13,40 @@ ControlIO control;
 
 Arduino ard0;
 
+
+int dPad;
+GamepadEx lStickYActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("lStickY").getValue())>0.05;}});
+GamepadEx lStickXActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("lStickX").getValue())>0.05;}});
+GamepadEx rStickYActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("rStickY").getValue())>0.05;}});
+GamepadEx rStickXActivity = new GamepadEx(new Button(){boolean inputCode(){return Math.abs(cont.getSlider("rStickX").getValue())>0.05;}});
+
+GamepadEx a = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("a").getValue()!=0;}});
+GamepadEx b = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("b").getValue()!=0;}});
+GamepadEx x = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("x").getValue()!=0;}});
+GamepadEx y = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("y").getValue()!=0;}});
+
+GamepadEx lStickB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lStickB").getValue()!=0;}});
+GamepadEx rStickB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rStickB").getValue()!=0;}});
+
+GamepadEx lT = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lT").getValue()!=0;}});
+GamepadEx rT = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rT").getValue()!=0;}});
+GamepadEx lB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("lB").getValue()!=0;}});
+GamepadEx rB = new GamepadEx(new Button(){boolean inputCode(){return cont.getButton("rB").getValue()!=0;}});
+
+GamepadEx dPadLeft  = new GamepadEx(new Button(){boolean inputCode(){return dPad==1 || dPad==8 || dPad==7;}});
+GamepadEx dPadRight = new GamepadEx(new Button(){boolean inputCode(){return dPad==3 || dPad==4 || dPad==5;}});
+GamepadEx dPadUp    = new GamepadEx(new Button(){boolean inputCode(){return dPad==1 || dPad==2 || dPad==3;}});
+GamepadEx dPadDown  = new GamepadEx(new Button(){boolean inputCode(){return dPad==5 || dPad==6 || dPad==7;}});
+
+
+
+
 //Storing controller button values
 float foreaft;
 float strafe;
 float lift;
-//float liftadj;
 float turn;
+//float liftadj;
 
 //Final motor speed calculations
 float mFL;  //Motor Front-Left
@@ -45,12 +73,8 @@ float mFRt; //Motor Front-Right turn
 float mBRt; //Motor Back-Right turn
 
 //Toggle for whether or not motors are slow
-boolean vslow;
-boolean lslow;
-
-//Buttons inputs for slowing
-boolean lmspress = false;
-boolean vmspress = false;
+int vslow;//vertical slowdown
+int lslow;//lateral slowdown
 
 //Actuator toggles
 boolean mainac;
@@ -66,7 +90,7 @@ int mainTip;
 int sidepos;
 
 //Motion of camera
-int camang = 90;
+int camAng = 90;
 
 
 /*
@@ -132,11 +156,11 @@ void setup () {
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("lgcontrol");
+  cont = control.getMatchedDevice("rovcontrol");
   
   //sets the slowing variables to default to fast mode
-  vslow = false;
-  lslow = false;
+  vslow = 0;
+  lslow = 0;
   
   //sets the manipulators to default in the not actuated positions
   mainac = false;
@@ -150,39 +174,56 @@ void setup () {
 }
 
 public void getUserInput() {
+  dPad = (int) cont.getHat("d_Pad").getValue();
+  GamepadExManager.updateAll();
   
   //toggles the lateral motion slowing
-  if (lmspress == false) {
-    if (cont.getButton("lslow").getValue() != 0) {
-      lslow = !lslow;
-      lmspress = true;
-    }
-  } else if (cont.getButton("lslow").getValue() == 0) {
-    lmspress = false;
+  if(lStickB.isToggled()) {
+    lslow = 44;
+  } else {
+    lslow = 0;
   }
   
   //toggles the vertical motion slowing
-  if (vmspress == false) {
-    if (cont.getButton("vslow").getValue() != 0) {
-      vslow = !vslow;
-      vmspress = true;
-    }
-  } else if (cont.getButton("vslow").getValue() == 0) {
-    vmspress = false;
+  if(rStickB.isToggled()) {
+    vslow = 45;
+  } else {
+    vslow = 0;
   }
 
   //gets the values of the controller's joystick positions
-  foreaft = cont.getSlider("foreaft").getValue();
+  
+  //deadzone implementation
+  if(lStickYActivity.isHeld()) {
+    foreaft = cont.getSlider("lStickY").getValue();
+  } else {
+    foreaft = 0;
+  }
+  
   mFLf = foreaft;
   mBLf = foreaft;
   mFRf = foreaft;
   mBRf = foreaft;
-  strafe = cont.getSlider("strafe").getValue();
+  
+  //deadzone implementation
+  if(lStickXActivity.isHeld()) {
+    strafe = cont.getSlider("lStickX").getValue();
+  } else {
+    strafe = 0;
+  }
+  
   mFLs = -strafe;
   mBLs = strafe;
   mFRs = strafe;
   mBRs = -strafe;
-  turn = cont.getSlider("turn").getValue();
+  
+  //deadzone implementation
+  if(rStickXActivity.isHeld()) {
+    turn = cont.getSlider("rStickX").getValue();
+  } else {
+    turn = 0;
+  }
+  
   mFLt = -turn;
   mBLt = -turn;
   mFRt = turn;
@@ -221,44 +262,35 @@ public void getUserInput() {
   
   //maps the commands to servo angle values
   //detects if the lateral slow is toggled on or off, cuts speed 50%
-  if (lslow == true) {
-    mFL = map(mFL, -1, 1, 44, 134);
-    mBL = map(mBL, -1, 1, 44, 134);
-    mFR = map(mFR, -1, 1, 44, 134);
-    mBR = map(mBR, -1, 1, 44, 134);
-  } else {  
-    mFL = map(mFL, -1, 1, 0, 179);
-    mBL = map(mBL, -1, 1, 0, 179);
-    mFR = map(mFR, -1, 1, 0, 179);
-    mBR = map(mBR, -1, 1, 0, 179);
-  }
-  
-  //detects if vertical slow is toggled on or off, cuts speed 50%
-  if (vslow == true) {
-    lift = map(cont.getSlider("lift").getValue(),  -1, 1, 44, 134);
+  mFL = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mBL = map(mBL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mFR = map(mFR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mBR = map(mBR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+
+  //checks to see if the activity level is high enough, if so it sets the lift motor power to the appropriate value and otherwise sets it to 0 power
+  if (rStickYActivity.isHeld()) {  
+    //detects if vertical slow is toggled on or off, cuts speed 50%
+    lift = map(cont.getSlider("rStickY").getValue(),  -1, 1, 0 + vslow - vslow/45, 179 - vslow);
   }  else {
-    lift = map(cont.getSlider("lift").getValue(),  -1, 1, 0, 179); 
+    lift = map(0,  -1, 1, 0 + vslow - vslow/45, 179 - vslow);
   }  
   
   //Uses the dpad to get PH camera motion commands
-  if (cont.getHat("camup").getValue() == 2) {
-    if (camang < 179) {
-      camang += 1;
+  if (dPadUp.isHeld()) {
+    if (camAng < 179) {
+      camAng += 1;
     }
   }
-  if (cont.getHat("camup").getValue() == 6) {
-    if (camang > 0) {
-      camang -= 1;
+  if (dPadDown.isHeld()) {
+    if (camAng > 0) {
+      camAng -= 1;
     }
-  }  
-  if (cont.getHat("camup").getValue() == 8) {
-    camang = 90;
-  }  
-  
+  }
+  if (dPadLeft.isPressed()) {
+    camAng = 90;
+  }
 }
 
-GamepadEx a = new GamepadEx();
-int counter = 0;
 void draw() {
  
   getUserInput();
@@ -274,16 +306,19 @@ void draw() {
   ard0.servoWrite(backRightThruster, (int)mBR);
   
   //Writes the camera angle
-  ard0.servoWrite(camTip, (int)camang);
-  
+  ard0.servoWrite(camTip, (int)camAng);
   
   //Populates the window with control information
   //background(141, 76, 34);
   //println("Hello world!");
-  a.updateButton(cont.getButton("main").getValue()!=0);
-  if(a.isPressed()) {
-    counter++;
-    println(counter);
-  }
-  
+  //print(camAng);
+  //print("   ");
+  //print(lStickYActivity.isHeld());
+  //print("   ");
+  //print(rStickXActivity.isHeld());
+  //print("   ");
+  //print(rStickYActivity.isHeld());
+  //print("   ");
+  //println(millis());
+   //<>//
 } 
