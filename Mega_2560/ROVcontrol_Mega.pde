@@ -42,13 +42,16 @@ GamepadEx dPadDown  = new GamepadEx(new Button(){boolean inputCode(){return dPad
 
 
 //Storing controller button values
-float foreaft;
+float forward;
 float strafe;
+float yaw;
+
 float lift;
-float turn;
+float roll;
+float pitch;
 //float liftadj;
 
-//Final motor speed calculations
+//Final lateral motor speed calculations
 float mFL;  //Motor Front-Left
 float mBL;  //Motor Back-Left
 float mFR;  //Motor Front-Right
@@ -66,15 +69,39 @@ float mBLs; //Motor Back-Left strafe
 float mFRs; //Motor Front-Right strafe
 float mBRs; //Motor Back-Right strafe
 
-//Turn motor speed command
-float mFLt; //Motor Front-Left turn
-float mBLt; //Motor Back-Left turn
-float mFRt; //Motor Front-Right turn
-float mBRt; //Motor Back-Right turn
+//Yaw motor speed command
+float mFLy; //Motor Front-Left yaw
+float mBLy; //Motor Back-Left yaw
+float mFRy; //Motor Front-Right yaw
+float mBRy; //Motor Back-Right yaw
+
+//Final vertical motor speed calculation
+float vFL;  //z-axis Motor Front-Left
+float vBL;  //z-axis Motor Back-Left
+float vFR;  //z-axis Motor Front-Right
+float vBR;  //z-axis Motor Back-Right
+
+//Up-Down motor speed command
+float vFLu; //Motor Front-Left up-down
+float vBLu; //Motor Back-Left up-down
+float vFRu; //Motor Front-Right up-down
+float vBRu; //Motor Back-Right up-down
+
+//Roll motor speed command
+float vFLr; //Motor Front-Left roll
+float vBLr; //Motor Back-Left roll
+float vFRr; //Motor Front-Right roll
+float vBRr; //Motor Back-Right roll
+
+//Pitch motor speed command
+float vFLp; //Motor Front-Left pitch
+float vBLp; //Motor Back-Left pitch
+float vFRp; //Motor Front-Right yaw
+float vBRp; //Motor Back-Right yaw
 
 //Toggle for whether or not motors are slow
-int vslow;//vertical slowdown
-int lslow;//lateral slowdown
+int vSlow;//vertical slowdown
+int lSlow;//lateral slowdown
 
 //Actuator toggles
 boolean mainac;
@@ -120,21 +147,17 @@ More Pin Documentation:
  \9 \           /8 /
   \__\   Back  /__/
 */
-int frontLeftThruster = 13;
-int midLeftThruster = 11;
-int backLeftThruster = 9;
-int frontRightThruster = 12;
-int midRightThruster = 10;
-int backRightThruster = 8;
+int frontLeftLateralThruster = 13;
+int backLeftLateralThruster = 9;
+int frontRightLateralThruster = 12;
+int backRightLateralThruster = 8;
+
+int frontLeftVerticalThruster = 0;
+int backLeftVerticalThruster = 0;
+int frontRightVerticalThruster = 0;
+int backRightVerticalThruster = 0;
 
 int camTip = 4;
-
-PImage clawCl;
-PImage clawOp;
-PImage iso;
-PImage side;
-int lIndent = 25;
-
 /*
 Unassigned PWM Pins:
   esc: 6
@@ -145,15 +168,6 @@ Unassigned PWM Pins:
 
 void setup () {
   
-  //sets the size of the window that pops up when you press run
-  size(600,600);
-  textSize(25);
-  //loads the wireframe images to the variable names
-  clawCl = loadImage("RobotWireframeClawClosed.PNG");
-  clawOp = loadImage("RobotWireframeClawOpen.PNG");
-  iso = loadImage("RobotWireframeIso.PNG");
-  side = loadImage("RobotWireframeSide.PNG");
-      
   //println(Arduino.list());    //Uncomment this to make the code print the COM ports available, then switch
                                 //the information in the initialize line to the correct COM port list location
   
@@ -162,21 +176,23 @@ void setup () {
   
   //Sets all the PWM pins to output PWM, this way it won't ever need to be changed later. 
   ard0.pinMode(camTip, Arduino.SERVO); 
-  ard0.pinMode(backRightThruster, Arduino.SERVO); 
-  ard0.pinMode(backLeftThruster, Arduino.SERVO); 
-  ard0.pinMode(midRightThruster, Arduino.SERVO); 
-  ard0.pinMode(midLeftThruster, Arduino.SERVO); 
-  ard0.pinMode(frontRightThruster, Arduino.SERVO); 
-  ard0.pinMode(frontLeftThruster, Arduino.SERVO); 
+  ard0.pinMode(backRightLateralThruster, Arduino.SERVO); 
+  ard0.pinMode(backLeftLateralThruster, Arduino.SERVO); 
+  ard0.pinMode(frontRightLateralThruster, Arduino.SERVO); 
+  ard0.pinMode(frontLeftLateralThruster, Arduino.SERVO); 
+  ard0.pinMode(frontLeftVerticalThruster, Arduino.SERVO); 
+  ard0.pinMode(backLeftVerticalThruster, Arduino.SERVO); 
+  ard0.pinMode(frontRightVerticalThruster, Arduino.SERVO); 
+  ard0.pinMode(backRightVerticalThruster, Arduino.SERVO); 
  
   control = ControlIO.getInstance(this);
   
   //finds the controller map file
-  cont = control.getMatchedDevice("lgcontrol");
+  cont = control.getMatchedDevice("rovcontrol");
   
   //sets the slowing variables to default to fast mode
-  vslow = 0;
-  lslow = 0;
+  vSlow = 0;
+  lSlow = 0;
   
   //sets the manipulators to default in the not actuated positions
   mainac = false;
@@ -189,50 +205,37 @@ void setup () {
   
 }
 
-//makes an entry in the window
-void addEntry(String title, int info, int x, int y) {
-  text(title + info, x, y);
-}
- 
- void addEntry(String title, boolean info, int x, int y) {
-  text(title + info, x, y);
-}
-  
-void addEntry(String title, float info, int x, int y) {
-  text(title + info, x, y);
-}
-
 public void getUserInput() {
   dPad = (int) cont.getHat("d_Pad").getValue();
   GamepadExManager.updateAll();
   
   //toggles the lateral motion slowing
   if(lStickB.isToggled()) {
-    lslow = 44;
+    lSlow = 44;
   } else {
-    lslow = 0;
+    lSlow = 0;
   }
   
   //toggles the vertical motion slowing
   if(rStickB.isToggled()) {
-    vslow = 45;
+    vSlow = 45;
   } else {
-    vslow = 0;
+    vSlow = 0;
   }
 
   //gets the values of the controller's joystick positions
   
   //deadzone implementation
   if(lStickYActivity.isHeld()) {
-    foreaft = cont.getSlider("lStickY").getValue();
+    forward = cont.getSlider("lStickY").getValue();
   } else {
-    foreaft = 0;
+    forward = 0;
   }
   
-  mFLf = foreaft;
-  mBLf = foreaft;
-  mFRf = foreaft;
-  mBRf = foreaft;
+  mFLf = forward;
+  mBLf = forward;
+  mFRf = forward;
+  mBRf = forward;
   
   //deadzone implementation
   if(lStickXActivity.isHeld()) {
@@ -248,21 +251,21 @@ public void getUserInput() {
   
   //deadzone implementation
   if(rStickXActivity.isHeld()) {
-    turn = cont.getSlider("rStickX").getValue();
+    yaw = cont.getSlider("rStickX").getValue();
   } else {
-    turn = 0;
+    yaw = 0;
   }
   
-  mFLt = -turn;
-  mBLt = -turn;
-  mFRt = turn;
-  mBRt = turn;
+  mFLy = -yaw;
+  mBLy = -yaw;
+  mFRy = yaw;
+  mBRy = yaw;
   
   //sums the commands to each thruster to determine final direction command
-  mFL = (mFLf + mFLs + mFLt);
-  mBL = (mBLf + mBLs + mBLt);
-  mFR = (mFRf + mFRs + mFRt);
-  mBR = (mBRf + mBRs + mBRt);
+  mFL = (mFLf + mFLs + mFLy);
+  mBL = (mBLf + mBLs + mBLy);
+  mFR = (mFRf + mFRs + mFRy);
+  mBR = (mBRf + mBRs + mBRy);
   
   //lowers the commands to the correct range
   if (mFL > 1) {
@@ -291,18 +294,91 @@ public void getUserInput() {
   
   //maps the commands to servo angle values
   //detects if the lateral slow is toggled on or off, cuts speed 50%
-  mFL = map(mFL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mBL = map(mBL, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mFR = map(mFR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
-  mBR = map(mBR, -1, 1, 0 + lslow - lslow/45, 179 - lslow);
+  mFL = map(mFL, -1, 1, 0 + lSlow - lSlow/45, 179 - lSlow);
+  mBL = map(mBL, -1, 1, 0 + lSlow - lSlow/45, 179 - lSlow);
+  mFR = map(mFR, -1, 1, 0 + lSlow - lSlow/45, 179 - lSlow);
+  mBR = map(mBR, -1, 1, 0 + lSlow - lSlow/45, 179 - lSlow);
 
   //checks to see if the activity level is high enough, if so it sets the lift motor power to the appropriate value and otherwise sets it to 0 power
   if (rStickYActivity.isHeld()) {  
     //detects if vertical slow is toggled on or off, cuts speed 50%
-    lift = map(cont.getSlider("rStickY").getValue(),  -1, 1, 0 + vslow - vslow/45, 179 - vslow);
+    lift = cont.getSlider("rStickY").getValue();
   }  else {
-    lift = map(0,  -1, 1, 0 + vslow - vslow/45, 179 - vslow);
+    lift = 0;
   }  
+  
+  vFLu = lift;
+  vBLu = lift;
+  vFRu = lift;
+  vBRu = lift;
+  
+  //deadzone implementation
+  boolean placeholder = true;
+  if(placeholder) {
+    roll = 1;
+  } else if(placeholder) {
+    roll = -1;
+  } else {
+    roll = 0;
+  } //<>//
+  
+  vFLr = roll;
+  vBLr = roll;
+  vFRr = -roll;
+  vBRr = -roll;
+  
+  //deadzone implementation
+  placeholder = true;
+  if(placeholder) {
+    pitch = 1;
+  } else if(placeholder) {
+    pitch = -1;
+  } else {
+    pitch = 0;
+  }
+  
+  vFLp = -yaw;
+  vBLp = yaw;
+  vFRp = -yaw;
+  vBRp = yaw;
+  
+  //sums the commands to each thruster to determine final direction command
+  vFL = (vFLu + vFLr + vFLp);
+  vBL = (vBLu + vBLr + vBLp);
+  vFR = (vFRu + vFRr + vFRp);
+  vBR = (vBRu + vBRr + vBRp);
+  
+  //lowers the commands to the correct range
+  if (vFL > 1) {
+    vFL = 1;
+  }  else if (mFL < -1) {
+    vFL = -1;
+  }  
+  
+  if (vBL > 1) {
+    vBL = 1;
+  }  else if (mBL < -1) {
+    vBL = -1;
+  }  
+  
+  if (vFR > 1) {
+    vFR = 1;
+  }  else if (mFR < -1) {
+    vFR = -1;
+  }  
+  
+  if (vBR > 1) {
+    vBR = 1;
+  }  else if (mBR < -1) {
+    vBR = -1;
+  }  
+  
+  //maps the commands to servo angle values
+  //detects if the lateral slow is toggled on or off, cuts speed 50%
+  vFL = map(vFL, -1, 1, 0 + vSlow - vSlow/45, 179 - lSlow);
+  vBL = map(vBL, -1, 1, 0 + vSlow - vSlow/45, 179 - lSlow);
+  vFR = map(vFR, -1, 1, 0 + vSlow - vSlow/45, 179 - lSlow);
+  vBR = map(vBR, -1, 1, 0 + vSlow - vSlow/45, 179 - lSlow);
   
   //Uses the dpad to get PH camera motion commands
   if (dPadUp.isHeld()) {
@@ -325,38 +401,21 @@ void draw() {
   getUserInput();
   
   //Writes the vertical motion command to the middle thrusters
-  ard0.servoWrite(midRightThruster, (int)lift);
-  ard0.servoWrite(midLeftThruster, (int)lift);
+  ard0.servoWrite(frontLeftVerticalThruster, (int)vFL);
+  ard0.servoWrite(backLeftVerticalThruster, (int)vBL);
+  ard0.servoWrite(frontRightVerticalThruster, (int)vFR);
+  ard0.servoWrite(backRightVerticalThruster, (int)vBR);
 
   //Writes the lateral motion command to the corner thrusters
-  ard0.servoWrite(backLeftThruster, (int)mBL);
-  ard0.servoWrite(frontRightThruster, (int)mFR);
-  ard0.servoWrite(frontLeftThruster, (int)mFL);
-  ard0.servoWrite(backRightThruster, (int)mBR);
+  ard0.servoWrite(frontLeftLateralThruster, (int)mFL);
+  ard0.servoWrite(backLeftLateralThruster, (int)mBL);
+  ard0.servoWrite(frontRightLateralThruster, (int)mFR);
+  ard0.servoWrite(backRightLateralThruster, (int)mBR);
   
   //Writes the camera angle
   ard0.servoWrite(camTip, (int)camAng);
   
   //Populates the window with control information
-    //color of the backround in rgb
-  background(100, 200, 255);
-  addEntry("Left stick Y values: ", foreaft, lIndent, 50);
-  addEntry("Left stick X values: ", strafe, lIndent, 75);
-  addEntry("Camera Angle: ", camAng, lIndent, 100);
-  //addEntry("Thruster _ Value: ", , lIndent, 125);
-  //addEntry("Gyroscope: ", , lIndent, 100);
-  
-  //adds the wireframe images and applies them when applicable
-  //if(int(time%4) == 0){
-  //    image(side, 50, 175);
-  //  }else if(int(time%5) == 0) {
-  //    image(clawOp,50, 175);
-  //  }else if(int(time%6) == 0){
-  //    image(clawCl, 50, 175);
-  //  }else{
-  //    image(iso,50,175);
-  //  }
-    
   //background(141, 76, 34);
   //println("Hello world!");
   //print(camAng);
