@@ -135,18 +135,21 @@ more of a type of device or an entirely new device being used.
 
 More Pin Documentation:
 
-  /‾‾/  Front  \‾‾\
- /13/           \12\
-/__/             \__\
-
-|‾‾|     ROV     |‾‾|
-|11|  Thrusters  |10|
-|__|             |__|
-
-\‾‾\             /‾‾/
- \9 \           /8 /
-  \__\   Back  /__/
+  /‾‾‾‾/   Front   \‾‾‾‾\
+ / 13 /             \ 12 \
+/____/               \____\
+|‾‾‾‾|               |‾‾‾‾|
+| ## |               | ## |
+|____|               |____|
+  
+|‾‾‾‾|               |‾‾‾‾|
+| ## |               | ## |
+|____|               |____|
+\‾‾‾‾\               /‾‾‾‾/
+ \ 9  \             / 8  /
+  \____\    Back   /____/
 */
+
 int frontLeftLateralThruster = 13;
 int backLeftLateralThruster = 9;
 int frontRightLateralThruster = 12;
@@ -159,15 +162,38 @@ int backRightVerticalThruster = 0;
 
 int camTip = 4;
 
+PFont monospace;
+PFont sansSerif;
 PImage clawCl;
 PImage clawOp;
 PImage iso;
 PImage side;
 int lIndent = 25;
+String[] wireFrame = {"  /‾‾‾‾‾‾/"," Front     ","\\‾‾‾‾‾‾\\\n",
+                  " / 13 /","             ","\\ 12 \\\n",
+                  "/____/","               ","\\____\\\n",
+                  "\n","","",
+                  "|‾‾‾‾‾‾|","               ","|‾‾‾‾‾‾|\n",
+                  "| ## |","               ","| ## |\n",
+                  "|____|","               ","|____|\n",
+                  "\n","","",
+                  "|‾‾‾‾‾‾|","               ","|‾‾‾‾‾‾|\n",
+                  "| ## |","               ","| ## |\n",
+                  "|____|","               ","|____|\n",
+                  "\n","","",
+                  "\\‾‾‾‾‾‾\\","               ","/‾‾‾‾‾‾/\n",
+                  " \\ 09 \\","             ","/ 08 /\n",
+                  "  \\____\\","    Back   ","/____/\n"
+                };
+int[] hex = new int[45];
+int startx = 250;
+int starty = 300;
+int[] xs = new int[45];
+int[] ys = new int[45];
 
 /*
 Unassigned PWM Pins:
-  esc: 6
+  esc: 6, 7, 10, 11
   servo270: 2
   servo180: 44, 45, 46
   Other: 3, 5, 7, 15
@@ -176,8 +202,44 @@ Unassigned PWM Pins:
 void setup () {
   
   //sets the size of the window that pops up when you press run
+  
+  /* Check the available fonts
+  String[] a = PFont.list();
+  for(String b: a) {
+    println(b);
+  }
+  sans-serif
+  Monospaced.plain
+  Monotxt
+  */
   size(600,600);
   textSize(25);
+  monospace = createFont("Monospaced.plain",25);
+  sansSerif = createFont("SansSerif",25);
+  textFont(sansSerif);
+  for(int i=0;i<hex.length;i++) {
+    hex[i]=#ffffff;
+  }
+  for(int i=0;i<xs.length;i++) {
+    switch(i%3) {
+      case 0:
+        xs[i]=startx;
+        break;
+      case 1:
+        xs[i]=startx+wireFrame[i-1].length()*12;
+        break;
+      case 2:
+      if(i==2||i==14||i==26||i==38) {
+        xs[i]=startx+(wireFrame[i-2].length()-2)*12+wireFrame[i-1].length()*12;
+      } else {
+        xs[i]=startx+wireFrame[i-2].length()*12+wireFrame[i-1].length()*12;
+      }
+        break;
+    }
+  }
+  for(int i=0;i<ys.length;i++) {
+    ys[i]=starty+20*(i/3);
+  }
   //loads the wireframe images to the variable names
   clawCl = loadImage("RobotWireframeClawClosed.PNG");
   clawOp = loadImage("RobotWireframeClawOpen.PNG");
@@ -321,6 +383,62 @@ public void getUserInput() {
     mBR = -1;
   }  
   
+  if(mFL<0) {
+    hex[0]=#ff0000;
+    hex[3]=#ff0000;
+    hex[6]=#ff0000;
+  } else if(mFL>0) {
+    hex[0]=#00ff00;
+    hex[3]=#00ff00;
+    hex[6]=#00ff00;
+  } else {
+    hex[0]=#ffffff;
+    hex[3]=#ffffff;
+    hex[6]=#ffffff;
+  }
+  
+  if(mBL<0) {
+    hex[36]=#ff0000;
+    hex[39]=#ff0000;
+    hex[42]=#ff0000;
+  } else if(mBL>0) {
+    hex[36]=#00ff00;
+    hex[39]=#00ff00;
+    hex[42]=#00ff00;
+  } else {
+    hex[36]=#ffffff;
+    hex[39]=#ffffff;
+    hex[42]=#ffffff;
+  }
+  
+  if(mFR<0) {
+    hex[2]=#ff0000;
+    hex[5]=#ff0000;
+    hex[8]=#ff0000;
+  } else if(mFR>0) {
+    hex[2]=#00ff00;
+    hex[5]=#00ff00;
+    hex[8]=#00ff00;
+  } else {
+    hex[2]=#ffffff;
+    hex[5]=#ffffff;
+    hex[8]=#ffffff;
+  }
+  
+  if(mBR<0) {
+    hex[38]=#ff0000;
+    hex[41]=#ff0000;
+    hex[44]=#ff0000;
+  } else if(mBR>0) {
+    hex[38]=#00ff00;
+    hex[41]=#00ff00;
+    hex[44]=#00ff00;
+  } else {
+    hex[38]=#ffffff;
+    hex[41]=#ffffff;
+    hex[44]=#ffffff;
+  }
+  
   //maps the commands to servo angle values
   //detects if the lateral slow is toggled on or off, cuts speed 50%
   mFL = map(mFL, -1, 1, 0 + lSlow - lSlow/45, 179 - lSlow);
@@ -342,7 +460,7 @@ public void getUserInput() {
   vBRu = lift;
   
   //deadzone implementation
-  boolean placeholder = true;
+  boolean placeholder = false;
   if(placeholder) {
     roll = 1;
   } else if(placeholder) {
@@ -357,7 +475,7 @@ public void getUserInput() {
   vBRr = -roll;
   
   //deadzone implementation
-  placeholder = true;
+  placeholder = false;
   if(placeholder) {
     pitch = 1;
   } else if(placeholder) {
@@ -366,10 +484,10 @@ public void getUserInput() {
     pitch = 0;
   }
   
-  vFLp = -yaw;
-  vBLp = yaw;
-  vFRp = -yaw; //<>//
-  vBRp = yaw;
+  vFLp = -pitch;
+  vBLp = pitch;
+  vFRp = -pitch; //<>//
+  vBRp = pitch;
   
   //sums the commands to each thruster to determine final direction command
   vFL = (vFLu + vFLr + vFLp);
@@ -380,27 +498,83 @@ public void getUserInput() {
   //lowers the commands to the correct range
   if (vFL > 1) {
     vFL = 1;
-  }  else if (mFL < -1) {
+  }  else if (vFL < -1) {
     vFL = -1;
   }  
   
   if (vBL > 1) {
     vBL = 1;
-  }  else if (mBL < -1) {
+  }  else if (vBL < -1) {
     vBL = -1;
   }  
   
   if (vFR > 1) {
     vFR = 1;
-  }  else if (mFR < -1) {
+  }  else if (vFR < -1) {
     vFR = -1;
   }  
   
   if (vBR > 1) {
     vBR = 1;
-  }  else if (mBR < -1) {
+  }  else if (vBR < -1) {
     vBR = -1;
   }  
+  
+  if(vFL<0) {
+    hex[12]=#ff0000;
+    hex[15]=#ff0000;
+    hex[18]=#ff0000;
+  } else if(vFL>0) {
+    hex[12]=#00ff00;
+    hex[15]=#00ff00;
+    hex[18]=#00ff00;
+  } else {
+    hex[12]=#ffffff;
+    hex[15]=#ffffff;
+    hex[18]=#ffffff;
+  }
+  
+  if(vBL<0) {
+    hex[24]=#ff0000;
+    hex[27]=#ff0000;
+    hex[30]=#ff0000;
+  } else if(vBL>0) {
+    hex[24]=#00ff00;
+    hex[27]=#00ff00;
+    hex[30]=#00ff00;
+  } else {
+    hex[24]=#ffffff;
+    hex[27]=#ffffff;
+    hex[30]=#ffffff;
+  }
+  
+  if(vFR<0) {
+    hex[14]=#ff0000;
+    hex[17]=#ff0000;
+    hex[20]=#ff0000;
+  } else if(vFR>0) {
+    hex[14]=#00ff00;
+    hex[17]=#00ff00;
+    hex[20]=#00ff00;
+  } else {
+    hex[14]=#ffffff;
+    hex[17]=#ffffff;
+    hex[20]=#ffffff;
+  }
+  
+  if(vBR<0) {
+    hex[26]=#ff0000;
+    hex[29]=#ff0000;
+    hex[32]=#ff0000;
+  } else if(vBR>0) {
+    hex[26]=#00ff00;
+    hex[29]=#00ff00;
+    hex[32]=#00ff00;
+  } else {
+    hex[26]=#ffffff;
+    hex[29]=#ffffff;
+    hex[32]=#ffffff;
+  }
   
   //maps the commands to servo angle values
   //detects if the lateral slow is toggled on or off, cuts speed 50%
@@ -446,11 +620,25 @@ void draw() {
   
   //Populates the window with control information
     //color of the backround in rgb
-  background(100, 200, 255);
+  fill(#FFFFFF);
+  textFont(sansSerif);
+  textSize(25);
+  strokeWeight(4);
+  background(0, 0, 0);
   addEntry("Left stick Y values: ", forward, lIndent, 50);
   addEntry("Left stick X values: ", strafe, lIndent, 75);
-  addEntry("Camera Angle: ", camAng, lIndent, 100);
-  //addEntry("Thruster _ Value: ", , lIndent, 125);
+  addEntry("Right stick Y values: ", lift, lIndent, 100);
+  addEntry("Right stick X values: ", yaw, lIndent, 125);
+  addEntry("Camera Angle: ", camAng, lIndent, 150);
+  
+  textFont(monospace);
+  textSize(20);
+  strokeWeight(6);
+  for(int i=0;i<wireFrame.length;i++) {
+    fill(hex[i]);
+    text(wireFrame[i],xs[i],ys[i]);
+  }
+  //addEntry("Thruster _ Value: ", 5, lIndent, 125);
   //addEntry("Gyroscope: ", , lIndent, 100);
   
   //adds the wireframe images and applies them when applicable
