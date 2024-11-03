@@ -431,9 +431,9 @@ void analogWriteCallback(byte pin, int value)
       case PIN_MODE_SERVO:
         if (IS_PIN_DIGITAL(pin))
 
-          if ((pin <= 13) && (pin >= 8)) {
+          if ((pin <= 13) && (pin >= 6)) {
             value = map(value, 0, 179, esc_lower, esc_upper);
-          } else if ((pin <= 7) && (pin >= 2)) {
+          } else if ((pin <= 5) && (pin >= 2)) {
             value = map(value, 0, 179, servo270_lower, servo270_upper);
           } else if ((pin <= 46) && (pin >= 44)) {
             value = map(value, 0, 179, servo180_lower, servo180_upper);
