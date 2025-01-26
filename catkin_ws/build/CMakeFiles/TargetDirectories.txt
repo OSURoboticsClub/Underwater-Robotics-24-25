@@ -70,3 +70,15 @@
 /home/underwater/Underwater-Robotics-24-25/catkin_ws/build/beginner_tutorials/CMakeFiles/beginner_tutorials_gennodejs.dir
 /home/underwater/Underwater-Robotics-24-25/catkin_ws/build/beginner_tutorials/CMakeFiles/roscpp_generate_messages_nodejs.dir
 /home/underwater/Underwater-Robotics-24-25/catkin_ws/build/beginner_tutorials/CMakeFiles/std_msgs_generate_messages_py.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/install/strip.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/list_install_components.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rebuild_cache.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rospy_tutorials_generate_messages_eus.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/edit_cache.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rospy_tutorials_generate_messages_lisp.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/install/local.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/test.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rospy_tutorials_generate_messages_cpp.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/install.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rospy_tutorials_generate_messages_nodejs.dir
+/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/CMakeFiles/rospy_tutorials_generate_messages_py.dir

@@ -132,6 +132,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/gtest/cmake_install.cmake")
   include("/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/beginner_tutorials/cmake_install.cmake")
+  include("/home/underwater/Underwater-Robotics-24-25/catkin_ws/build/numpy_tutorials/cmake_install.cmake")
 
 endif()
 
