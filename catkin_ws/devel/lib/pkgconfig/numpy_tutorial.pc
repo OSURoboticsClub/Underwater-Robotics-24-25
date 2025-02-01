@@ -1,8 +1,0 @@
-prefix=/home/underwater/Underwater-Robotics-24-25/catkin_ws/devel
-
-Name: numpy_tutorial
-Description: Description of numpy_tutorial
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
