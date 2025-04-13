@@ -2,7 +2,7 @@ import serial
 from inputs import get_gamepad
 
 # Connect to Arduino (update COM port accordingly)
-arduino = serial.Serial('COM5', 9600, timeout=1)
+arduino = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
 
 def scale_value(input_val, in_min, in_max, out_min, out_max):
     """Scales input values from one range to another."""
