@@ -10,7 +10,6 @@ project(motor_control_system)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
-  serial
   std_msgs
 )
 
