@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import serial
-from std_msgs.msg import string
+from std_msgs.msg import String
 
 def callback(msg):
     command = msg.data
