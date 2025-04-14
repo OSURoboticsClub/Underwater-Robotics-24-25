@@ -16,8 +16,8 @@ def joy_callback(msg):
     else:
         direction = "STOP"
 
-    command = f"{direction} {pwm}"
-    rospy.loginfo(f"Publishing: {command}")
+    command = "{} {}".format(direction, pwm)
+    rospy.loginfo("Publishing: {}".format(command))
     pub.publish(command)
 
 rospy.init_node('joy_to_motor', anonymous=True)

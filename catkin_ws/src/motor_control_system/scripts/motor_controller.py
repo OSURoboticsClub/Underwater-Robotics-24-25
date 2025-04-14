@@ -5,7 +5,7 @@ from std_msgs.msg import string
 
 def callback(msg):
     command = msg.data
-    rospy.loginfo(f"Sending to ESP32: {command}")
+    rospy.loginfo("Sending to ESP32: {}".format(command))
     ser.write((command + '\n').encode())
 
 if __name__ == '__main__':
