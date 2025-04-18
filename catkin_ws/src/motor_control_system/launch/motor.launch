@@ -1,0 +1,16 @@
+<launch>
+
+    <node pkg="joy" type="joy_node" output="screen" name="joystick">
+        <param name="dev" value="/dev/input/js2"/>
+    </node>
+
+    <node pkg="motor_control_system" type="motor_controller.py"
+        name="motor_controller">
+        <param name="port" value="/dev/ttyUSB0"/>
+        <param name="baud" value="115220"/>
+    </node>
+
+    <node pkg="motor_control_system" type="joy_to_motor.py" 
+        name="joy_to_motorcmd"/>
+
+</launch>
