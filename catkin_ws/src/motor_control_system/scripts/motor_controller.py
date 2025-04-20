@@ -7,7 +7,7 @@ def main():
     rospy.init_node('motor_listener', anonymous=True)
 
     port = rospy.get_param('~port', '/dev/ttyUSB0')
-    baud = rospy.get_param('~baud', 115220)
+    baud = rospy.get_param('~baud', 9600)
 
     try:
         ser = serial.Serial(port, baud, timeout=1)
