@@ -6,7 +6,8 @@
         <param name="baud" value="9600"/>
     </node>
 
-    <machine name="ground" address="GROUND" user="underwater"/>
+    <machine name="ground" address="GROUND" user="underwater" 
+        env-loader="/home/underwater/ros_env.sh"/>
 
     <node pkg="joy" type="joy_node" name="joystick" machine="ground">
         <param name="dev" value="/dev/input/js2"/>
