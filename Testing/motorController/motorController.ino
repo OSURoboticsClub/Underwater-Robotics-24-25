@@ -1,12 +1,34 @@
 #include <ESP32Servo.h>
 
-Servo esc; // Create a Servo object for the ESC
-const int escPin = 19; // ESC signal wire connected to pin 19
+struct Motor {
+    Servo servo;
+    const char* name;
+    const int pin;
+};
+
+Motor motors[] = {
+    {Servo, "lfl", 19}, // Lateral Front Left
+    {Servo, "lfr", -1}, // Lateral Front Right
+    {Servo, "lbl", -1}, // Lateral Back Left
+    {Servo, "lbr", -1}, // Lateral Back Right
+
+    {Servo, "vfl", -1}, // Vertical Front Left
+    {Servo, "vfr", -1}, // Vertical Front Right
+    {Servo, "vbl", -1}, // Vertical Back Left
+    {Servo, "vbr", -1}  // Vertical Back Right
+};
+
+const int num_motors = 8;
 
 void setup() {
     Serial.begin(115200);  // Match with Jetson's ROS node
-    esc.attach(escPin);
-    esc.writeMicroseconds(1500); // Neutral position (for most ESCs)
+
+    for (int i = 0; i < num_motors; i++) {
+        if (motors[i].pin != -1) {
+            motors[i].servo.attach(motors[i].pin);
+            motors[i].servo.writeMicroseconds(1500); // Neutral position
+        }
+    }
 }
 
 void loop() {
@@ -14,27 +36,18 @@ void loop() {
         String input = Serial.readStringUntil('\n');
         input.trim();  // Remove any leading/trailing whitespace
 
-        int throttle = 1500;  // Default to neutral
-        if (input.length() > 0) {
-            if (input.toInt() != 0) {
-                // Just a number like 1600
-                throttle = input.toInt();
-            } else {
-                // Full command like FWD 1600
-                int spaceIndex = input.indexOf(' ');
-                if (spaceIndex > 0) {
-                    String command = input.substring(0, spaceIndex);
-                    String valueStr = input.substring(spaceIndex + 1);
-                    throttle = valueStr.toInt();
-                    // You can check  if you want later
-                }
-            }
+        int space_index = input.indexOf(' ');
+        if (space_index > 0) {
+            String target = input.substring(0, space_index);
+            int throttle = input.substring(space_index + 1).toInt();
 
-            // Bounds check
             if (throttle >= 1000 && throttle <= 2000) {
-                esc.writeMicroseconds(throttle);
-            } else {
-                esc.writeMicroseconds(1500);  // Safety fallback
+                for (int i = 0; i < num_motors; i++) {
+                    if ( target.equalsIgnoreCase(motors[i].name) ) {
+                        motors[i].servo.writeMicroseconds(throttle);
+                        break;
+                    }
+                }
             }
         }
     }

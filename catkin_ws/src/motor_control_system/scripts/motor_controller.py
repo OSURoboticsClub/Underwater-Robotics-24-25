@@ -18,8 +18,12 @@ def main():
 
     def callback(msg):
         command = msg.data.strip()
-        rospy.loginfo("Sending to ESP32: {}".format(command))
-        ser.write((command + '\n').encode())
+        if command == "":
+            rospy.loginfo("Ignoring empty command")
+            return
+        else:
+            rospy.loginfo("Sending to ESP32: {}".format(command))
+            ser.write((command + '\n').encode())
 
     rospy.Subscriber('motor_command', String, callback)
     rospy.spin()
