@@ -3,7 +3,7 @@
     <node pkg="motor_control_system" type="motor_controller.py"
         name="motor_controller">
         <param name="port" value="/dev/ttyUSB0"/>
-        <param name="baud" value="9600"/>
+        <param name="baud" value="115200"/>
     </node>
 
     <machine name="ground" address="GROUND" user="underwater" 
@@ -15,5 +15,7 @@
 
     <node pkg="motor_control_system" type="joy_to_motor.py" 
         name="joy_to_motorcmd" machine="ground"/>
+
+    <node pkg="rqt_console" type="rqt_console" name="rqt" machine="ground"/>
 
 </launch>

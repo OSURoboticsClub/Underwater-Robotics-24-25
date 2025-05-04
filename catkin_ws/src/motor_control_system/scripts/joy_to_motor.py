@@ -3,19 +3,6 @@ import rospy
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
 
-def clamp(num, min_value, max_value):
-    return max(min_value, min(max_value, num))
-
-def to_pwm(cmd):
-    cmd = int(((cmd + 1.0) / 2.0) * 1000 + 1000)
-    return cmd
-
-old_lfl = 0.0
-old_lfr = 0.0
-old_lbl = 0.0
-old_lbr = 0.0
-
-def joy_callback(msg):
     # msg has an axes array of length 8
     # msg.axes[0] left stick X: 1=left, -1=right
     # msg.axes[1] left stick Y: 1=up, -1=down
@@ -41,45 +28,48 @@ def joy_callback(msg):
     # msg.buttons[9] = left stick press
     # msg.buttons[10] = right stick press
 
+def clamp(num, min_value, max_value):
+    return max(min_value, min(max_value, num))
+
+def to_pwm(cmd):
+    cmd = int(((cmd + 1.0) / 2.0) * 1000 + 1000)
+    return cmd
+
+old_values = {
+        'lfl': 0.0,
+        'lfr': 0.0,
+        'lbl': 0.0,
+        'lbr': 0.0
+        }
+
+def process_motor(label, value, old_values, command_parts):
+    value = clamp(value, -1.0, 1.0)
+    if value != old_values[label]:
+            pwm = to_pwm(value)
+            command_parts.append("{} {}".format(label, pwm))
+            old_values[label] = value
+
+def joy_callback(msg):
     forward = msg.axes[1]
     strafe = msg.axes[0]
     turn = msg.axes[3]
+
+    command_parts = [];
 
     lfl = (forward - strafe - turn) # Lateral Front Left
     lfr = (forward + strafe - turn) # Lateral Front Right
     lbl = (forward + strafe + turn) # Lateral Back Left
     lbr = (forward - strafe + turn) # Lateral Back Right
 
-    lfl = clamp(lfl, -1.0, 1.0)
-    lfr = clamp(lfr, -1.0, 1.0)
-    lbl = clamp(lbl, -1.0, 1.0)
-    lbr = clamp(lbr, -1.0, 1.0)
+    process_motor('lfl', lfl, old_values, command_parts)
+    process_motor('lfr', lfr, old_values, command_parts)
+    process_motor('lbl', lbl, old_values, command_parts)
+    process_motor('lbr', lbr, old_values, command_parts)
 
-    global old_lfl
-    global old_lfr
-    global old_lbl
-    global old_lbr
-
-    command = ""
-
-    if lfl != old_lfl:
-        command += "lfl {} \n".format(to_pwm(lfl))
-        old_lfl = lfl
-    
-    if lfr != old_lfr:
-        command += "lfr {} \n".format(to_pwm(lfr))
-        old_lfr = lfr
-
-    if lbl != old_lbl:
-        command += "lbl {} \n".format(to_pwm(lbl))
-        old_lbl = lbl
-
-    if lbr != old_lbr:
-        command += "lbr {} \n".format(to_pwm(lbr))
-        old_lbr = lbr
-
-    rospy.loginfo("Publishing: {}".format(command))
-    pub.publish(command)
+    if command_parts:
+        command = "\n".join(command_parts)
+        rospy.loginfo("Publishing: {}".format(command))
+        pub.publish(command)
 
 rospy.init_node('joy_to_motor', anonymous=True)
 pub = rospy.Publisher('motor_command', String, queue_size=10)
