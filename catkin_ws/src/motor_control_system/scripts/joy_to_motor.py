@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+import rospy
+from sensor_msgs.msg import Joy
+from std_msgs.msg import String
+
+    # msg has an axes array of length 8
+    # msg.axes[0] left stick X: 1=left, -1=right
+    # msg.axes[1] left stick Y: 1=up, -1=down
+    # msg.axes[2] left trigger, 1.0 is unpressed, -1 is fully pressed
+    # msg.axes[3] right stick X: 1=left, -1=right
+    # msg.axes[4] right stick Y: 1=up, -1=down
+    # msg.axes[5] right trigger, 1.0 is unpressed, -1 is fully pressed
+    # NOTE: before the triggers have been pressed once, they stay at 0.0
+    #       after they've been pressed once they default to 1.0
+    # msg.axes[6] left/right on dpad: 1=dpad right, -1=dpad left
+    # msg.axes[7] up/down on dpad: 1=dpad up, -1=dpad down
+    # 
+    # msg also has an buttons array of length 11
+    # msg.buttons[0] = A
+    # msg.buttons[1] = B
+    # msg.buttons[2] = X
+    # msg.buttons[3] = Y
+    # msg.buttons[4] = left trigger
+    # msg.buttons[5] = right trigger
+    # msg.buttons[6] = back button
+    # msg.buttons[7] = start button
+    # msg.buttons[8] = dunno, probably mode but it doesn't register
+    # msg.buttons[9] = left stick press
+    # msg.buttons[10] = right stick press
+
+def clamp(num, min_value, max_value):
+    return max(min_value, min(max_value, num))
+
+def to_pwm(cmd):
+    cmd = int(((cmd + 1.0) / 2.0) * 1000 + 1000)
+    return cmd
+
+old_values = {
+        'lfl': 0.0,
+        'lfr': 0.0,
+        'lbl': 0.0,
+        'lbr': 0.0
+        }
+
+def process_motor(label, value, old_values, command_parts):
+    value = clamp(value, -1.0, 1.0)
+    if value != old_values[label]:
+            pwm = to_pwm(value)
+            command_parts.append("{} {}".format(label, pwm))
+            old_values[label] = value
+
+def joy_callback(msg):
+    forward = msg.axes[1]
+    strafe = msg.axes[0]
+    turn = msg.axes[3]
+
+    command_parts = [];
+
+    lfl = (forward - strafe - turn) # Lateral Front Left
+    lfr = (forward + strafe - turn) # Lateral Front Right
+    lbl = (forward + strafe + turn) # Lateral Back Left
+    lbr = (forward - strafe + turn) # Lateral Back Right
+
+    process_motor('lfl', lfl, old_values, command_parts)
+    process_motor('lfr', lfr, old_values, command_parts)
+    process_motor('lbl', lbl, old_values, command_parts)
+    process_motor('lbr', lbr, old_values, command_parts)
+
+    if command_parts:
+        command = "\n".join(command_parts)
+        rospy.loginfo("Publishing: {}".format(command))
+        pub.publish(command)
+
+rospy.init_node('joy_to_motor', anonymous=True)
+pub = rospy.Publisher('motor_command', String, queue_size=10)
+rospy.Subscriber('joy', Joy, joy_callback)
+rospy.spin()
