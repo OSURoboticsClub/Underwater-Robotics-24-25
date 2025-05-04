@@ -26,11 +26,10 @@ def main():
             ser.write((command + '\n').encode())
 
     rospy.Subscriber('motor_command', String, callback)
-    rospy.init_node('arduino_serial_reader', anonymous=True)
     pub = rospy.Publisher('arduino_data', String, queue_size=10)
     if ser.in_waiting:
             data = ser.readline().decode('utf-8').strip()
-            rospy.loginfo(f"Received from Arduino: {data}")
+            rospy.loginfo("Received from Arduino: {}".format(data))
             pub.publish(data)
     rospy.spin()
     ser.close
