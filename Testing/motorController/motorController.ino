@@ -4,18 +4,25 @@ struct Motor {
     Servo servo;
     const char* name;
     const int pin;
+
+    Motor(const Servo& servo, const char* name, const int pin):
+        servo(servo),
+        name(name),
+        pin(pin) {
+            
+        }
 };
 
 Motor motors[] = {
-    {Servo, "lfl", 19}, // Lateral Front Left
-    {Servo, "lfr", -1}, // Lateral Front Right
-    {Servo, "lbl", -1}, // Lateral Back Left
-    {Servo, "lbr", -1}, // Lateral Back Right
+    Motor(Servo(), "lfl", 19), // Lateral Front Left
+    Motor(Servo(), "lfr", 04), // Lateral Front Right
+    Motor(Servo(), "lbl", -1), // Lateral Back Left
+    Motor(Servo(), "lbr", -1), // Lateral Back Right
 
-    {Servo, "vfl", -1}, // Vertical Front Left
-    {Servo, "vfr", -1}, // Vertical Front Right
-    {Servo, "vbl", -1}, // Vertical Back Left
-    {Servo, "vbr", -1}  // Vertical Back Right
+    Motor(Servo(), "vfl", -1), // Vertical Front Left
+    Motor(Servo(), "vfr", -1), // Vertical Front Right
+    Motor(Servo(), "vbl", -1), // Vertical Back Left
+    Motor(Servo(), "vbr", -1)  // Vertical Back Right
 };
 
 const int num_motors = 8;
@@ -43,7 +50,7 @@ void loop() {
 
             if (throttle >= 1000 && throttle <= 2000) {
                 for (int i = 0; i < num_motors; i++) {
-                    if ( target.equalsIgnoreCase(motors[i].name) ) {
+                    if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
                         motors[i].servo.writeMicroseconds(throttle);
                         break;
                     }
