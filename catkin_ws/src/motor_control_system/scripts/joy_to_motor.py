@@ -31,15 +31,22 @@ from std_msgs.msg import String
 def clamp(num, min_value, max_value):
     return max(min_value, min(max_value, num))
 
-def to_pwm(cmd):
-    cmd = int(((cmd + 1.0) / 2.0) * 1000 + 1000)
-    return cmd
+def to_pwm(cmd, start=1000, end=2000):
+    range = end - start
+    return int(((cmd + 1.0) / 2.0) * range + start)
+
+ltrigger_been_pressed = False;
+rtrigger_been_pressed = False;
 
 old_values = {
         'lfl': 0.0,
         'lfr': 0.0,
         'lbl': 0.0,
-        'lbr': 0.0
+        'lbr': 0.0,
+        'vfl': 0.0,
+        'vfr': 0.0,
+        'vbl': 0.0,
+        'vbr': 0.0
         }
 
 def process_motor(label, value, old_values, command_parts):
@@ -50,9 +57,29 @@ def process_motor(label, value, old_values, command_parts):
             old_values[label] = value
 
 def joy_callback(msg):
+    if ((not rtrigger_been_pressed) and msg.axes[5] != 0.0): 
+        global rtrigger_been_pressed
+        rtrigger_been_pressed = True
+
+    if ((not ltrigger_been_pressed) and msg.axes[2] != 0.0): 
+        global ltrigger_been_pressed
+        ltrigger_been_pressed = True
+
+
     forward = msg.axes[1]
     strafe = msg.axes[0]
     turn = msg.axes[3]
+    roll = msg.axes[6]
+    pitch = msg.axes[7]
+    if not ltrigger_been_pressed and not rtrigger_been_pressed:
+        lift = 0.0
+    elif not ltrigger_been_pressed and rtrigger_been_pressed:
+        lift = -1 * ((msg.axes[5] - 1.0) / 2.0)
+    elif ltrigger_been_pressed and not rtrigger_been_pressed:
+        lift = (msg.axes[2] - 1.0) / 2.0
+    else:
+        lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
+    lift = clamp(lift, -1.0, 1.0)
 
     command_parts = [];
 
@@ -61,10 +88,21 @@ def joy_callback(msg):
     lbl = (forward + strafe + turn) # Lateral Back Left
     lbr = (forward - strafe + turn) # Lateral Back Right
 
+    vfl = (lift + roll - pitch) # Vertical Front Left
+    vfr = (lift + roll + pitch) # Vertical Front Left
+    vbl = (lift - roll - pitch) # Vertical Front Left
+    vbr = (lift - roll + pitch) # Vertical Front Left
+
+
     process_motor('lfl', lfl, old_values, command_parts)
     process_motor('lfr', lfr, old_values, command_parts)
     process_motor('lbl', lbl, old_values, command_parts)
     process_motor('lbr', lbr, old_values, command_parts)
+
+    process_motor('vfl', vfl, old_values, command_parts)
+    process_motor('vfr', vfr, old_values, command_parts)
+    process_motor('vbl', vbl, old_values, command_parts)
+    process_motor('vbr', vbr, old_values, command_parts)
 
     if command_parts:
         command = "\n".join(command_parts)
