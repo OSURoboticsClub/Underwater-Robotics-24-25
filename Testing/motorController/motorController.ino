@@ -38,6 +38,7 @@ void setup() {
   }
 }
 
+long current_time = millis();
 void loop() {
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
@@ -58,7 +59,9 @@ void loop() {
       }
     }
     //insert code  here theo
-    Serial.println("Hello, World!");
     //print to serial. py code to publish to serial output/sensor output
+  } else if((millis() - current_time) >= 10) {
+    Serial.println("Hello, World!");
+    current_time = millis();
   }
 }
