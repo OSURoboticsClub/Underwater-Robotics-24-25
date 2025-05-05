@@ -20,8 +20,8 @@ from std_msgs.msg import String
     # msg.buttons[1] = B
     # msg.buttons[2] = X
     # msg.buttons[3] = Y
-    # msg.buttons[4] = left trigger
-    # msg.buttons[5] = right trigger
+    # msg.buttons[4] = left shoulder
+    # msg.buttons[5] = right shoulder
     # msg.buttons[6] = back button
     # msg.buttons[7] = start button
     # msg.buttons[8] = dunno, probably mode but it doesn't register
@@ -83,15 +83,19 @@ def joy_callback(msg):
 
     command_parts = [];
 
-    lfl = (forward - strafe - turn) # Lateral Front Left
-    lfr = (forward + strafe - turn) # Lateral Front Right
-    lbl = (forward + strafe + turn) # Lateral Back Left
-    lbr = (forward - strafe + turn) # Lateral Back Right
+    lateral_mod = rospy.get_param('~lateral', 1)
+    vertical_mod = rospy.get_param('~vertical', 1)
+    pitch_roll_mod = rospy.get_param('~pitch_roll', 1)
 
-    vfl = (lift + roll - pitch) # Vertical Front Left
-    vfr = (lift + roll + pitch) # Vertical Front Left
-    vbl = (lift - roll - pitch) # Vertical Front Left
-    vbr = (lift - roll + pitch) # Vertical Front Left
+    lfl = (forward - strafe - turn) * lateral_mod # Lateral Front Left
+    lfr = (forward + strafe - turn) * lateral_mod # Lateral Front Right
+    lbl = (forward + strafe + turn) * lateral_mod # Lateral Back Left
+    lbr = (forward - strafe + turn) * lateral_mod # Lateral Back Right
+
+    vfl = vertical_mod * lift + ( roll - pitch) * pitch_roll_mod # Vertical Front Left
+    vfr = vertical_mod * lift + ( roll + pitch) * pitch_roll_mod # Vertical Front Left
+    vbl = vertical_mod * lift + (-roll - pitch) * pitch_roll_mod # Vertical Front Left
+    vbr = vertical_mod * lift + (-roll + pitch) * pitch_roll_mod # Vertical Front Left
 
 
     process_motor('lfl', lfl, old_values, command_parts)
