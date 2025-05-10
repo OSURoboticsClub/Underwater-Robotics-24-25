@@ -163,6 +163,8 @@ catkin_install_python(PROGRAMS
   scripts/joy_to_motor.py
   scripts/joy_to_servo.py
   scripts/motor_controller.py
+  scripts/window.py
+  scripts/keyboard_to_servo.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
