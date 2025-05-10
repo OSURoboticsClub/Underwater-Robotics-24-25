@@ -89,7 +89,7 @@ def joy_callback(msg):
     if not start_pressed and msg.buttons[7] == 1:
         start_pressed = True
         if old_values["top_manip"] == -1.0:
-            process_motor('top_manip', 0.0, old_values, command_parts, True)
+            process_motor('top_manip', 1.0, old_values, command_parts, True)
         else:
             process_motor('top_manip', -1.0, old_values, command_parts, True)
     elif start_pressed and msg.buttons[7] == 0:

@@ -57,12 +57,13 @@ def process_motor(label, value, old_values, command_parts):
             old_values[label] = value
 
 def joy_callback(msg):
+    global ltrigger_been_pressed
+    global rtrigger_been_pressed
+
     if ((not rtrigger_been_pressed) and msg.axes[5] != 0.0): 
-        global rtrigger_been_pressed
         rtrigger_been_pressed = True
 
     if ((not ltrigger_been_pressed) and msg.axes[2] != 0.0): 
-        global ltrigger_been_pressed
         ltrigger_been_pressed = True
 
 
