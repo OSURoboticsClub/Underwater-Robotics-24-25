@@ -4,7 +4,7 @@ struct Motor {
   Servo servo;
   const char* name;
   const int pin;
-  const start_pos = 1500;
+  const int start_pos = 1500;
 
   Motor(const Servo& servo, const char* name, int pin):
     servo(servo),
@@ -28,7 +28,7 @@ const int main_manip = 26;
 const int left_manip = 14;
 const int lights = 2;
 
-const int num_motors = 5;
+const int num_motors = 3;
 
 void setup() {
   Serial.begin(115200);  // Match with Jetson's ROS node
