@@ -37,7 +37,7 @@ def to_pwm(cmd, start=1000, end=2000):
 
 old_values = {
         'main_manip': 1.0,
-        'left_manip': -1.0,
+        'left_manip': 0.0,
         'top_manip': -1.0,
         'main_mover': 0.0,
         'left_mover': 0.0,
@@ -71,18 +71,18 @@ def joy_callback(msg):
     if not lshoulder_pressed and msg.buttons[4] == 1:
         lshoulder_pressed = True
         if old_values["main_manip"] == 1.0:
-            process_motor('main_manip', -1.0, old_values, command_parts, True)
+            process_motor('main_manip', 0.0, old_values, command_parts, False)
         else:
-            process_motor('main_manip', 1.0, old_values, command_parts, True)
+            process_motor('main_manip', 1.0, old_values, command_parts, False)
     elif lshoulder_pressed and msg.buttons[4] == 0:
         lshoulder_pressed = False
 
     if not rshoulder_pressed and msg.buttons[5] == 1:
         rshoulder_pressed = True
-        if old_values["left_manip"] == -1.0:
-            process_motor('left_manip', 1.0, old_values, command_parts, True)
+        if old_values["left_manip"] == 1.0:
+            process_motor('left_manip', 0.0, old_values, command_parts, False)
         else:
-            process_motor('left_manip', -1.0, old_values, command_parts, True)
+            process_motor('left_manip', 1.0, old_values, command_parts, False)
     elif rshoulder_pressed and msg.buttons[5] == 0:
         rshoulder_pressed = False
 
@@ -111,7 +111,7 @@ def joy_callback(msg):
 
     if not back_pressed and msg.buttons[6] == 1:
         back_pressed = True
-        if old_values["lights"] == 0:
+        if old_values["lights"] == 0.0:
             process_motor('lights', 1.0, old_values, command_parts, False)
         else:
             process_motor('lights', 0.0, old_values, command_parts, False)

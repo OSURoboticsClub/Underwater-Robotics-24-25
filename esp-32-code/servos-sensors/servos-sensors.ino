@@ -43,6 +43,10 @@ void setup() {
   pinMode(main_manip, OUTPUT);
   pinMode(left_manip, OUTPUT);
   pinMode(lights, OUTPUT);
+
+  digitalWrite(main_manip, HIGH);
+  digitalWrite(left_manip, LOW);
+  digitalWrite(lights, LOW);
 }
 
 long current_time = millis();
