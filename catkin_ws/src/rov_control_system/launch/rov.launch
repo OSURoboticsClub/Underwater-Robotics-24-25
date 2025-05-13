@@ -30,6 +30,4 @@
         name="joy_to_servocmd" machine="ground">
     </node>
 
-    <node pkg="rqt_console" type="rqt_console" name="rqt" machine="ground"/>
-
 </launch>
