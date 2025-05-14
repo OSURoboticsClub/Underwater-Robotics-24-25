@@ -9,8 +9,9 @@ def main():
     pub = rospy.Publisher('key_states', String, queue_size=10)
 
     pygame.init()
-    screen = pygame.display.set_mode((200, 200))
+    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
     pygame.display.set_caption("Keyboard Listener")
+    pygame.mouse.set_visible(True)
 
     clock = pygame.time.Clock()
     held_keys = set()
@@ -20,6 +21,8 @@ def main():
         pygame.K_DOWN: 'DOWN',
         pygame.K_LEFT: 'LEFT',
         pygame.K_RIGHT: 'RIGHT',
+        pygame.K_LEFTBRACKET: "[",
+        pygame.K_RIGHTBRACKET: "]",
         pygame.K_w: 'W',
         pygame.K_a: 'A',
         pygame.K_s: 'S',
@@ -29,11 +32,15 @@ def main():
         pygame.K_ESCAPE: 'ESCAPE'
     }
 
-    while not rospy.is_shutdown():
+    running = True
+    while (not rospy.is_shutdown()) and running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 rospy.signal_shutdown('Window closed')
             elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
                 if event.key in keymap:
                     held_keys.add(keymap[event.key])
             elif event.type == pygame.KEYUP:

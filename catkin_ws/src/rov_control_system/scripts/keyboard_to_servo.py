@@ -50,15 +50,19 @@ def key_states_callback(msg):
     #    rospy.loginfo("W")
     #elif new_key_press("DOWN"):
     #    rospy.loginfo("S")
-    move_quantity = 0.01
-    if "UP" in key_states:
+    move_quantity = 0.02
+    if "]" in key_states:
+        camera_y = 0
+    elif "UP" in key_states:
         camera_y = old_values["camera_y"] + move_quantity
     elif "DOWN" in key_states:
         camera_y = old_values["camera_y"] - move_quantity
     else:
         camera_y = old_values["camera_y"]
 
-    if "RIGHT" in key_states:
+    if "[" in key_states:
+        camera_x = 0
+    elif "RIGHT" in key_states:
         camera_x = old_values["camera_x"] + move_quantity
     elif "LEFT" in key_states:
         camera_x = old_values["camera_x"] - move_quantity
