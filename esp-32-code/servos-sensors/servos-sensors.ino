@@ -23,7 +23,7 @@ Motor motors[] = {
   Motor(Servo(), "main_mover", 25),
   Motor(Servo(), "left_mover", 27),
   Motor(Servo(), "camera_x", 27),
-  Motor(Servo(), "camera_y, 14")
+  Motor(Servo(), "camera_y", 14)
 };
 
 const int main_manip = 26;
@@ -74,9 +74,9 @@ void loop() {
 
       if (target_pin != 0) {
         if (throttle == 0.0) {
-          digitalWrite(main_manip, LOW);
+          digitalWrite(target_pin, LOW);
         } else {
-          digitalWrite(main_manip, HIGH);
+          digitalWrite(target_pin, HIGH);
         }
       } else if (throttle >= 500 && throttle <= 2500) {
         for (int i = 0; i < num_motors; i++) {

@@ -15,7 +15,8 @@ def to_pwm(cmd, start=1000, end=2000):
 
 old_values = {
         'camera_x': 0.0,
-        'camera_y': 0.0
+        'camera_y': 0.0,
+        'lights': 0.0 # temp
         }
 
 def process_motor(label, value, old_values, command_parts):
@@ -63,12 +64,22 @@ def key_states_callback(msg):
     if "[" in key_states:
         camera_x = 0
     elif "RIGHT" in key_states:
-        camera_x = old_values["camera_x"] + move_quantity
-    elif "LEFT" in key_states:
         camera_x = old_values["camera_x"] - move_quantity
+    elif "LEFT" in key_states:
+        camera_x = old_values["camera_x"] + move_quantity
     else:
         camera_x = old_values["camera_x"]
 
+#    if "D" in key_states: # temp
+#        lights = 1.0 # temp
+#        old_values["lights"] = lights # temp
+#    elif "A" in key_states: # temp
+#        lights = 0.0 # temp
+#        old_values["lights"] = lights # temp
+#    else: # temp
+#        lights = old_values["lights"] # temp
+
+#    command_parts.append("lights {}".format(lights)) # temp
     process_motor('camera_x', camera_x, old_values, command_parts)
     process_motor('camera_y', camera_y, old_values, command_parts)
 

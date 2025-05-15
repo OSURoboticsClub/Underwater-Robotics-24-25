@@ -9,7 +9,8 @@ def main():
     pub = rospy.Publisher('key_states', String, queue_size=10)
 
     pygame.init()
-    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    # screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((200,200))
     pygame.display.set_caption("Keyboard Listener")
     pygame.mouse.set_visible(True)
 

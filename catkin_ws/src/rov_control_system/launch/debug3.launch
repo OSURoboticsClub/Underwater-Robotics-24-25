@@ -12,22 +12,29 @@
         <param name="baud" value="115200"/>
     </node>
 
-    <machine name="ground" address="GROUND" user="underwater" 
-        env-loader="/home/underwater/ros_env.sh"/>
-
-    <node pkg="joy" type="joy_node" name="joystick" machine="ground">
+    <node pkg="joy" type="joy_node" name="joystick">
         <param name="dev" value="/dev/input/js2"/>
     </node>
 
     <node pkg="rov_control_system" type="joy_to_motor.py" 
-        name="joy_to_motorcmd" machine="ground">
+        name="joy_to_motorcmd">
         <param name="lateral" value="1"/>
         <param name="vertical" value="1"/>
         <param name="pitch_roll" value="0.5"/>
     </node>
 
     <node pkg="rov_control_system" type="joy_to_servo.py" 
-        name="joy_to_servocmd" machine="ground">
+        name="joy_to_servocmd">
     </node>
+
+    <node pkg="rov_control_system" type="keyboard_to_servo.py"
+        name="keyboard_to_servo">
+    </node>
+
+    <node pkg="rov_control_system" type="window.py"
+        name="display">
+    </node>
+
+    <node pkg="rqt_console" type="rqt_console" name="rqt"/>
 
 </launch>
