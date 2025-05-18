@@ -46,7 +46,7 @@ void setup() {
   pinMode(left_manip, OUTPUT);
   pinMode(lights, OUTPUT);
 
-  digitalWrite(main_manip, HIGH);
+  digitalWrite(main_manip, LOW);
   digitalWrite(left_manip, LOW);
   digitalWrite(lights, LOW);
 }
@@ -87,10 +87,8 @@ void loop() {
         }
       }
     }
-    //insert code  here theo
-    //print to serial. py code to publish to serial output/sensor output
   } else if((millis() - current_time) >= 10) {
-    Serial.println("Hello, World!");
-    current_time = millis();
+    //    Serial.println("Hello, World!");
+    //    current_time = millis();
   }
 }
