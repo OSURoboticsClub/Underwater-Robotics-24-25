@@ -1,14 +1,18 @@
 #include <ESP32Servo.h>
+#include <cstdlib>
+#include <ctime>
 
 struct Motor {
   Servo servo;
   const char* name;
   const int pin;
+  int pwm;
 
   Motor(const Servo& servo, const char* name, const int pin):
     servo(servo),
     name(name),
-    pin(pin) {
+    pin(pin),
+    pwm(1500) {
 
     }
 };
@@ -29,15 +33,17 @@ const int num_motors = 8;
 
 void setup() {
   Serial.begin(115200);  // Match with Jetson's ROS node
+  srand(time(nullptr));
 
   for (int i = 0; i < num_motors; i++) {
     if (motors[i].pin != -1) {
       motors[i].servo.attach(motors[i].pin);
-      motors[i].servo.writeMicroseconds(1500); // Neutral position
+      motors[i].servo.writeMicroseconds(motors[i].pwm); // Neutral position
     }
   }
 }
 
+long current_time = millis();
 void loop() {
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
@@ -51,9 +57,36 @@ void loop() {
       if (throttle >= 1000 && throttle <= 2000) {
         for (int i = 0; i < num_motors; i++) {
           if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
-            motors[i].servo.writeMicroseconds(throttle);
+            motors[i].pwm = throttle;
+
+            String output = "New Command ";
+            output += motors[i].name;
+            output += " ";
+            output += motors[i].pwm;
+            Serial.println(output);
             break;
           }
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < num_motors; i++) {
+    if (motors[i].pin != -1) {
+      int rand_mod = rand() % 21 - 10;
+      motors[i].servo.writeMicroseconds(motors[i].pwm + rand_mod);
+
+      if ((millis() - current_time) >= 500) {
+        String output = "Old Command ";
+        output += motors[i].name;
+        output += " ";
+        output += (motors[i].pwm + rand_mod);
+        output += " ";
+        output += motors[i].pwm;
+        Serial.println(output);
+
+        if (i == (num_motors - 1)) {
+          current_time = millis();
         }
       }
     }

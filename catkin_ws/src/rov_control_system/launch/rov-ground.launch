@@ -35,6 +35,4 @@
         name="display">
     </node>
 
-    <node pkg="rqt_console" type="rqt_console" name="rqt"/>
-
 </launch>

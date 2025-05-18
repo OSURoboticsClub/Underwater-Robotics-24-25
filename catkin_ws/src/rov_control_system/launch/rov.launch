@@ -30,4 +30,12 @@
         name="joy_to_servocmd" machine="ground">
     </node>
 
+    <node pkg="rov_control_system" type="keyboard_to_servo.py"
+        name="keyboard_to_servo" machine="ground">
+    </node>
+
+    <node pkg="rov_control_system" type="window.py"
+        name="display" machine="ground">
+    </node>
+
 </launch>

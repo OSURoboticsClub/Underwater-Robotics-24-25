@@ -27,4 +27,15 @@
         name="joy_to_servocmd">
     </node>
 
+    <node pkg="rov_control_system" type="keyboard_to_servo.py"
+        name="keyboard_to_servo">
+    </node>
+
+    <node pkg="rov_control_system" type="window.py"
+        name="display">
+        <param name="fullscreen" value="True"/>
+    </node>
+
+    <node pkg="rqt_console" type="rqt_console" name="rqt"/>
+
 </launch>

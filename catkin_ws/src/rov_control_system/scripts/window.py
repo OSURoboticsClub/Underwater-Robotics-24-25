@@ -9,8 +9,11 @@ def main():
     pub = rospy.Publisher('key_states', String, queue_size=10)
 
     pygame.init()
-    # screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-    screen = pygame.display.set_mode((200,200))
+    fullscreen = rospy.get_param('~fullscreen', False)
+    if fullscreen:
+        screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((200,200))
     pygame.display.set_caption("Keyboard Listener")
     pygame.mouse.set_visible(True)
 
@@ -18,20 +21,20 @@ def main():
     held_keys = set()
 
     keymap = {
-        pygame.K_UP: 'UP',
-        pygame.K_DOWN: 'DOWN',
-        pygame.K_LEFT: 'LEFT',
-        pygame.K_RIGHT: 'RIGHT',
-        pygame.K_LEFTBRACKET: "[",
-        pygame.K_RIGHTBRACKET: "]",
-        pygame.K_w: 'W',
-        pygame.K_a: 'A',
-        pygame.K_s: 'S',
-        pygame.K_d: 'D',
-        pygame.K_SPACE: 'SPACE',
-        pygame.K_RETURN: 'ENTER',
-        pygame.K_ESCAPE: 'ESCAPE'
-    }
+            pygame.K_UP: 'UP',
+            pygame.K_DOWN: 'DOWN',
+            pygame.K_LEFT: 'LEFT',
+            pygame.K_RIGHT: 'RIGHT',
+            pygame.K_LEFTBRACKET: "[",
+            pygame.K_RIGHTBRACKET: "]",
+            pygame.K_w: 'W',
+            pygame.K_a: 'A',
+            pygame.K_s: 'S',
+            pygame.K_d: 'D',
+            pygame.K_SPACE: 'SPACE',
+            pygame.K_RETURN: 'ENTER',
+            pygame.K_ESCAPE: 'ESCAPE'
+            }
 
     running = True
     while (not rospy.is_shutdown()) and running:
