@@ -90,26 +90,34 @@ void loop() {
       for (int i = 0; i < 4; i++) {
         if (target.equalsIgnoreCase(offsets[i])) {
           motors[i].offset = throttle;
-          break;
+          motors[i].servo.writeMicroseconds(motors[i].pwm + motors[i].offset); // Neutral position
+          
+          if ((millis() - current_time) >= 100) {
+            String output = "";
+            output += motors[i].name;
+            output += " ";
+            output += (motors[i].pwm + motors[i].offset);
+            Serial.println(output);
+          }
+          current_time = millis();
+          return;
         }
       }
       if (throttle >= 1000 && throttle <= 2000) {
         for (int i = 0; i < num_motors; i++) {
           if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
-            motors[i].pwm = throttle + motors[i].offset;
-            motors[i].servo.writeMicroseconds(motors[i].pwm); // Neutral position
+            motors[i].pwm = throttle;
+            motors[i].servo.writeMicroseconds(motors[i].pwm + motors[i].offset); // Neutral position
             
             if ((millis() - current_time) >= 100) {
               String output = "";
               output += motors[i].name;
               output += " ";
-              output += motors[i].pwm;
+              output += (motors[i].pwm + motors[i].offset);
               Serial.println(output);
             }
-            break;
-          }
-          if (i == (num_motors - 1)) {
             current_time = millis();
+            return;
           }
         }
       }
