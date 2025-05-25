@@ -29,15 +29,15 @@ struct Motor {
 };
 
 Motor motors[] = {
-  Motor(Servo(), "lfl",  4), // Lateral Front Left
-  Motor(Servo(), "lfr", 32, -404), // Lateral Front Right
-  Motor(Servo(), "lbl", 26, -394), // Lateral Back Left
-  Motor(Servo(), "lbr", 23, -394), // Lateral Back Right
+  Motor(Servo(), "lfl",  4), // Lateral Front Left - 1
+  Motor(Servo(), "lfr", 32, -404), // Lateral Front Right - 2
+  Motor(Servo(), "lbl", 26, -394), // Lateral Back Left - 7
+  Motor(Servo(), "lbr", 23, -394), // Lateral Back Right - 8
 
-  Motor(Servo(), "vfl", 18), // Vertical Front Left
-  Motor(Servo(), "vfr", 33), // Vertical Front Right
-  Motor(Servo(), "vbl", 19), // Vertical Back Left
-  Motor(Servo(), "vbr", 25)  // Vertical Back Right
+  Motor(Servo(), "vfl", 18), // Vertical Front Left - 3
+  Motor(Servo(), "vfr", 33), // Vertical Front Right - 4
+  Motor(Servo(), "vbl", 19), // Vertical Back Left - 5
+  Motor(Servo(), "vbr", 25)  // Vertical Back Right - 6
 };
 
 const int num_motors = 8;

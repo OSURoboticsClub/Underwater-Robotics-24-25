@@ -19,18 +19,17 @@ struct Motor {
 };
 
 Motor motors[] = {
-  Motor(Servo(), "top_manip",  13, 500),
-  Motor(Servo(), "main_mover", 25),
-  Motor(Servo(), "left_mover", 27),
+  Motor(Servo(), "top_manip",  13, 500), // Jelly
+  Motor(Servo(), "main_mover", 25), // rotates the claw
+  Motor(Servo(), "left_mover", -1), // moves the syringe thingy
   Motor(Servo(), "camera_x", 27),
   Motor(Servo(), "camera_y", 14)
 };
-
-const int main_manip = 26;
-const int left_manip = 14;
-const int lights = 2;
-
 const int num_motors = 5;
+
+const int main_manip = 26; // actuates claw
+const int left_manip = -1; // syringe doohickey
+const int lights = 2;
 
 void setup() {
   Serial.begin(115200);  // Match with Jetson's ROS node
