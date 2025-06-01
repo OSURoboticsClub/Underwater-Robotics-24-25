@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import String
 import pygame
 import json
+import threading
 
 class TextPrint:
     def __init__(self):
@@ -23,7 +24,7 @@ class TextPrint:
     def reset(self):
         self.x = 10
         self.y = 10
-        self.line_height = 20
+        self.line_height = 22
         self.x_offset = 0
         self.color = (0,0,0)
 
@@ -48,16 +49,40 @@ class TextPrint:
     def set_color(self, new_color):
         self.color = new_color
 
-data = {}
+debug = False
+data = {
+        'lfl': "0.0",
+        'lfr': "0.0",
+        'lbl': "0.0",
+        'lbr': "0.0",
+        'vfl': "0.0",
+        'vfr': "0.0",
+        'vbl': "0.0",
+        'vbr': "0.0",
+        'main_manip': "1.0",
+        'left_manip': "0.0",
+        'top_manip': "-1.0",
+        'main_mover': "0.0",
+        'left_mover': "0.0",
+        'lights': "0.0",
+        'camera_x': "0.0",
+        'camera_y': "0.0"
+        }
+
+data_lock = threading.Lock()
+
+def ros_spin():
+    rospy.spin()
 
 def callback(msg):
     global data
     commands = msg.data.strip()
 
     command_list = commands.split("\n")
-    for command in command_list:
-        command = command.strip().split(" ")
-        data[command[0]] = command[1]
+    with data_lock:
+        for command in command_list:
+            command = command.strip().split(" ")
+            data[command[0]] = command[1]
 
 def print_ROV(text_print, screen):
     old_x = text_print.get_x()
@@ -92,9 +117,15 @@ def print_ROV(text_print, screen):
     text_print.set_x(old_x)
 
 def main():
+    heartbeat = 0;
+    global debug
     rospy.init_node('pygame_key_publisher')
     pub = rospy.Publisher('key_states', String, queue_size=10)
     rospy.Subscriber('motor_command', String, callback)
+
+    spin_thread = threading.Thread(target=ros_spin)
+    spin_thread.daemon = True
+    spin_thread.start()
 
     pygame.init()
     fullscreen = rospy.get_param('~fullscreen', False)
@@ -121,7 +152,6 @@ def main():
             pygame.K_d: 'D',
             pygame.K_SPACE: 'SPACE',
             pygame.K_RETURN: 'ENTER',
-            pygame.K_ESCAPE: 'ESCAPE',
             pygame.K_1: '1',
             pygame.K_2: '2',
             pygame.K_3: '3',
@@ -132,18 +162,23 @@ def main():
 
     running = True
     while (not rospy.is_shutdown()) and running:
+        pygame.event.pump()
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 rospy.signal_shutdown('Window closed')
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
                 if event.key in keymap:
                     held_keys.add(keymap[event.key])
+                elif event.key == pygame.K_LSHIFT:
+                    debug = not debug
             elif event.type == pygame.KEYUP:
                 if event.key in keymap and keymap[event.key] in held_keys:
                     held_keys.remove(keymap[event.key])
+            pass
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE] and keys[pygame.K_DELETE]:
+            running = False
 
         # Publish as JSON string
         pub.publish(json.dumps(sorted(list(held_keys))))
@@ -154,17 +189,23 @@ def main():
 
         text_print.indent()
         text_print.set_color((255,0,0))
-        text_print.tprintln(screen, "Press ESC to exit")
+        text_print.tprintln(screen, "Press both ESC and delete to exit")
 
         text_print.set_color((0,0,0))
         global data;
-        for key, value in data.items():
-            text_print.tprint(screen, "{}: ".format(key))
-            text_print.tprintln(screen, value)
+        if debug:
+            with data_lock:
+                for key, value in data.items():
+                    text_print.tprint(screen, "{}: ".format(key))
+                    text_print.tprintln(screen, value)
         print_ROV(text_print, screen)
+        text_print.set_y(600);
+        text_print.unindent();
+        text_print.tprint(screen, str(heartbeat % 10));
 
         pygame.display.flip()
 
+        heartbeat += 1
         clock.tick(30)  # Limit to 30 FPS
 
     pygame.quit()
