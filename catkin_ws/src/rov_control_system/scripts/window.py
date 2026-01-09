@@ -84,7 +84,18 @@ def callback(msg):
             command = command.strip().split(" ")
             data[command[0]] = command[1]
 
+def rov_color(speed):
+    speed = float(speed)
+    if (speed == 1500) or (speed == 0):
+        return (0,0,0)
+    elif speed > 1500:
+        return (0,255,0)
+    else:
+        return (255,0,0)
+
+
 def print_ROV(text_print, screen):
+    global data
     old_x = text_print.get_x()
     old_y = text_print.get_y()
     text_print.set_x(1575)
@@ -107,7 +118,28 @@ def print_ROV(text_print, screen):
             u" \\ 09 \\",u"             ",u"/ 08 /",
             u"  \\____\\",u"    Back   ",u"/____/"
             ]
+    wireFrameColor = ["lfl","","lfr",
+            "lfl","","lfr",
+            "lfl","","lfr",
+            "","","",
+            "vfl","","vfr",
+            "vfl","","vfr",
+            "vfl","","vfr",
+            "","","",
+            "vbl","","vbr",
+            "vbl","","vbr",
+            "vbl","","vbr",
+            "","","",
+            "lbl","","lbr",
+            "lbl","","lbr",
+            "lbl","","lbr",
+            ]
     for index, item in enumerate(wireFrame):
+        if wireFrameColor[index] != "":
+            text_print.set_color(rov_color(data[wireFrameColor[index]]))
+        else:
+            text_print.set_color((0,0,0))
+
         if (index + 1) % 3 == 0:
             text_print.tprintln(screen, item)
         else:
@@ -115,6 +147,7 @@ def print_ROV(text_print, screen):
 
     text_print.set_y(old_y)
     text_print.set_x(old_x)
+    text_print.set_color((0,0,0))
 
 def main():
     heartbeat = 0;
