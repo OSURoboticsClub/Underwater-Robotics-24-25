@@ -1,9 +1,41 @@
 import rclpy
-from rclpy.qos import QoSProfile
 from rclpy.node import Node
 
+# This imports QoSProfiles, the instructions for handling messages within a topic
+# There are 3 different parameters that we care about often:
+#   depth: how many messages can be stored/queued at once
+        # takes an integer number of messages
+#   reliability: how does the publisher handle the potential for missed messages
+        # 2 options:
+        #   BEST_EFFORT: Send the message and try to deliver it, but if it fails
+        #       don't resend or try again
+        #   RELIABLE: When a message is sent, ensure all subscribers receive it, 
+        #       resending as necessary
+#   durability: how does the publisher handle new subscribers joining after 
+#       changes have been made
+        # 2 options:
+        #   TRANSIENT_LOCAL: When a new node subscribes, transmit past messages 
+        #       in order to get them up-to-date
+        #   VOLATILE: When a new node subscribes, make no attempt to update them
+from rclpy.qos import QoSProfile
+
+# This class is a representation of a node that subscribes to one topic and 
+# publishes to a different topic
 class SubscriberPublisher(Node):
 
+    # Constructor for this class
+    # Params:
+    #   name: a string representing the name for this node
+    #   sub_topic_type: the type of message that is published to the topic this 
+    #       node subscribes to
+    #   sub_topic_name: the name of the topic this node subscribes to
+    #   pub_topic_type: the type of message that is published to the topic this 
+    #       node publishes to
+    #   pub_topic_name: the name of the topic this node publishes to
+    #   sub_qos_profile: an optional parameter providing a QoS profile
+    #   pub_qos_profile: an optional parameter providing a QoS profile
+    #
+    #       Both QoS profiles default to BEST_EFFORT, RELIABLE, with a depth of 10
     def __init__(self, name, 
             sub_topic_type, sub_topic_name,
             pub_topic_type, pub_topic_name,
