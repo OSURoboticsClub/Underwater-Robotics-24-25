@@ -43,6 +43,23 @@ class JoyToMotor(SubscriberPublisher):
                 }
         self.commands = dict()
 
+        from rcl_interfaces.msg import ParameterDescriptor
+        lateral_mod_descriptor = ParameterDescriptor(description='The modifier for the lateral movement of the ROV')
+        vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
+        pitch_roll_mod_descriptor = ParameterDescriptor(description='The modifier for the pitch and roll of the ROV')
+
+        self.declare_parameter('lateral_mod', 1.0, lateral_mod_descriptor)
+        self.lateral_mod = self.get_parameter('lateral_mod').get_parameter_value().double_value
+        self.declare_parameter('vertical_mod', 1.0, vertical_mod_descriptor)
+        self.vertical_mod = self.get_parameter('vertical_mod').get_parameter_value().double_value
+        self.declare_parameter('pitch_roll_mod', 1.0, pitch_roll_mod_descriptor)
+        self.pitch_roll_mod = self.get_parameter('pitch_roll_mod').get_parameter_value().double_value
+
+        self.get_logger().info(f'Parameters:')
+        self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
+        self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
+        self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
+
     def process_motor(self, key, value):
         value = clamp(value, -1.0, 1.0)
         if value != self.old_values[key]:
@@ -98,19 +115,15 @@ class JoyToMotor(SubscriberPublisher):
             lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
         lift = clamp(lift, -1.0, 1.0)
 
-        lateral_mod = 1.0 #rospy.get_param('~lateral', 1)
-        vertical_mod = 1.0 #rospy.get_param('~vertical', 1)
-        pitch_roll_mod = 1.0 #rospy.get_param('~pitch_roll', 1)
-
-        lfl = (forward - strafe - turn) * lateral_mod # Lateral Front Left
-        lfr = (forward + strafe - turn) * lateral_mod # Lateral Front Right
-        lbl = (forward + strafe + turn) * lateral_mod # Lateral Back Left
-        lbr = (forward - strafe + turn) * lateral_mod # Lateral Back Right
+        lfl = (forward - strafe - turn) * self.lateral_mod # Lateral Front Left
+        lfr = (forward + strafe - turn) * self.lateral_mod # Lateral Front Right
+        lbl = (forward + strafe + turn) * self.lateral_mod # Lateral Back Left
+        lbr = (forward - strafe + turn) * self.lateral_mod # Lateral Back Right
     
-        vfl = vertical_mod * lift + ( roll - pitch) * pitch_roll_mod # Vertical Front Left
-        vfr = vertical_mod * lift + ( roll + pitch) * pitch_roll_mod # Vertical Front Right
-        vbl = vertical_mod * lift + (-roll - pitch) * pitch_roll_mod # Vertical Back Left
-        vbr = vertical_mod * lift + (-roll + pitch) * pitch_roll_mod # Vertical Back Right
+        vfl = self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod # Vertical Front Left
+        vfr = self.vertical_mod * lift + ( roll + pitch) * self.pitch_roll_mod # Vertical Front Right
+        vbl = self.vertical_mod * lift + (-roll - pitch) * self.pitch_roll_mod # Vertical Back Left
+        vbr = self.vertical_mod * lift + (-roll + pitch) * self.pitch_roll_mod # Vertical Back Right
 
         self.process_motor('lfl', lfl)
         self.process_motor('lfr', lfr)
