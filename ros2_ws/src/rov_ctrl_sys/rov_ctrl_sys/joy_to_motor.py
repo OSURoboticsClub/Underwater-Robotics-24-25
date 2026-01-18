@@ -45,11 +45,14 @@ class JoyToMotor(SubscriberPublisher):
 
         from rcl_interfaces.msg import ParameterDescriptor
         lateral_mod_descriptor = ParameterDescriptor(description='The modifier for the lateral movement of the ROV')
+        yaw_mod_descriptor = ParameterDescriptor(description='The modifier for the yaw movement of the ROV')
         vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
         pitch_roll_mod_descriptor = ParameterDescriptor(description='The modifier for the pitch and roll of the ROV')
 
         self.declare_parameter('lateral_mod', 1.0, lateral_mod_descriptor)
         self.lateral_mod = self.get_parameter('lateral_mod').get_parameter_value().double_value
+        self.declare_parameter('yaw_mod', 1.0, yaw_mod_descriptor)
+        self.yaw_mod = self.get_parameter('yaw_mod').get_parameter_value().double_value
         self.declare_parameter('vertical_mod', 1.0, vertical_mod_descriptor)
         self.vertical_mod = self.get_parameter('vertical_mod').get_parameter_value().double_value
         self.declare_parameter('pitch_roll_mod', 1.0, pitch_roll_mod_descriptor)
@@ -57,6 +60,7 @@ class JoyToMotor(SubscriberPublisher):
 
         self.get_logger().info(f'Parameters:')
         self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
+        self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
         self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
         self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
 
@@ -115,10 +119,10 @@ class JoyToMotor(SubscriberPublisher):
             lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
         lift = clamp(lift, -1.0, 1.0)
 
-        lfl = (forward - strafe - turn) * self.lateral_mod # Lateral Front Left
-        lfr = (forward + strafe - turn) * self.lateral_mod # Lateral Front Right
-        lbl = (forward + strafe + turn) * self.lateral_mod # Lateral Back Left
-        lbr = (forward - strafe + turn) * self.lateral_mod # Lateral Back Right
+        lfl = (forward - strafe) * self.lateral_mod - turn * self.yaw_mod # Lateral Front Left
+        lfr = (forward + strafe) * self.lateral_mod - turn * self.yaw_mod # Lateral Front Right
+        lbl = (forward + strafe) * self.lateral_mod + turn * self.yaw_mod # Lateral Back Left
+        lbr = (forward - strafe) * self.lateral_mod + turn * self.yaw_mod # Lateral Back Right
     
         vfl = self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod # Vertical Front Left
         vfr = self.vertical_mod * lift + ( roll + pitch) * self.pitch_roll_mod # Vertical Front Right
@@ -152,7 +156,7 @@ def main(args=None):
         while rclpy.ok():
             rclpy.spin_once(node, timeout_sec=1)
     except KeyboardInterrupt:
-        node.get_logger().info("Shutting down (Keyboard Interrupt)")
+        node.get_logger().info("Shutting down (SIGINT)")
         pass
     finally:
         # Destroy the node explicitly
