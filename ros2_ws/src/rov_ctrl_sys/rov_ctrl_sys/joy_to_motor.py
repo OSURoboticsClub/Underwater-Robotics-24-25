@@ -124,6 +124,7 @@ class JoyToMotor(SubscriberPublisher):
         if self.commands:
             new_msg = String()
             new_msg.data = json.dumps(self.commands)
+            self.get_logger().info(f"motor_commands: {new_msg.data}")
             return new_msg
         else:
             return None
