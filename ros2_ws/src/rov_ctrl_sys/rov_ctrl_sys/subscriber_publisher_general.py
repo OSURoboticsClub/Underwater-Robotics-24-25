@@ -41,6 +41,7 @@ class SubscriberPublisher(Node):
             pub_topic_type, pub_topic_name,
             sub_qos_profile=10, pub_qos_profile=10):
         super().__init__(name)
+
         if isinstance(sub_qos_profile, int):
             sub_qos_profile = QoSProfile(depth=sub_qos_profile)
         if isinstance(pub_qos_profile, int):
@@ -59,5 +60,5 @@ class SubscriberPublisher(Node):
             self.publisher_.publish(pub_msg)
 
     def generate_pub_msg(self, msg):
-        self.get_logger().warn(f"Using default publish, publishing input unchanged: \"{msg}\"")
+        self.get_logger().warn(f'Using default publish, publishing input unchanged: \"{msg}\"')
         return msg

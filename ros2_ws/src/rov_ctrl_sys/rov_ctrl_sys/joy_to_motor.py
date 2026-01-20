@@ -2,6 +2,7 @@ import rclpy
 from rov_ctrl_sys.subscriber_publisher_general import SubscriberPublisher
 from rclpy.signals import SignalHandlerOptions
 import rclpy.qos as QoS
+from rcl_interfaces.msg import ParameterDescriptor
 
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
@@ -19,31 +20,30 @@ class JoyToMotor(SubscriberPublisher):
 
     def __init__(self):
         sub_qos = QoS.QoSProfile(
-                depth=10, 
-                reliability=QoS.ReliabilityPolicy.BEST_EFFORT,
-                durability=QoS.DurabilityPolicy.VOLATILE
-                )
+            depth=10, 
+            reliability=QoS.ReliabilityPolicy.BEST_EFFORT,
+            durability=QoS.DurabilityPolicy.VOLATILE
+        )
         pub_qos = QoS.QoSProfile(
-                depth=10, 
-                reliability=QoS.ReliabilityPolicy.RELIABLE,
-                durability=QoS.DurabilityPolicy.VOLATILE
-                )
+            depth=10, 
+            reliability=QoS.ReliabilityPolicy.RELIABLE,
+            durability=QoS.DurabilityPolicy.VOLATILE
+        )
         super().__init__('joy_to_motor', Joy, 'joy', String, 'motor_command', sub_qos, pub_qos)
         self.ltrigger_been_pressed = False
         self.rtrigger_been_pressed = False
         self.old_values = {
-                'lfl': 0.0,
-                'lfr': 0.0,
-                'lbl': 0.0,
-                'lbr': 0.0,
-                'vfl': 0.0,
-                'vfr': 0.0,
-                'vbl': 0.0,
-                'vbr': 0.0
-                }
+            'lfl': 0.0,
+            'lfr': 0.0,
+            'lbl': 0.0,
+            'lbr': 0.0,
+            'vfl': 0.0,
+            'vfr': 0.0,
+            'vbl': 0.0,
+            'vbr': 0.0
+        }
         self.commands = dict()
 
-        from rcl_interfaces.msg import ParameterDescriptor
         lateral_mod_descriptor = ParameterDescriptor(description='The modifier for the lateral movement of the ROV')
         yaw_mod_descriptor = ParameterDescriptor(description='The modifier for the yaw movement of the ROV')
         vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
@@ -141,7 +141,7 @@ class JoyToMotor(SubscriberPublisher):
         if self.commands:
             new_msg = String()
             new_msg.data = json.dumps(self.commands)
-            self.get_logger().info(f"motor_commands: {new_msg.data}")
+            self.get_logger().debug(f"motor_commands: {new_msg.data}")
             return new_msg
         else:
             return None
