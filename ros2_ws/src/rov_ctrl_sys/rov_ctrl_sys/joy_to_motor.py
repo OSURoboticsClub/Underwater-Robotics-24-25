@@ -6,7 +6,6 @@ from rcl_interfaces.msg import ParameterDescriptor
 
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
-import json
 
 def clamp(num, min_value, max_value):
     return max(min_value, min(max_value, num))
@@ -140,7 +139,7 @@ class JoyToMotor(SubscriberPublisher):
 
         if self.commands:
             new_msg = String()
-            new_msg.data = json.dumps(self.commands)
+            new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
             self.get_logger().debug(f"motor_commands: {new_msg.data}")
             return new_msg
         else:

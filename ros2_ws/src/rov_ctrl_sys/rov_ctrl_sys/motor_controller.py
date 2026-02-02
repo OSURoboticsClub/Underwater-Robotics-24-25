@@ -5,8 +5,9 @@ from rclpy.signals import SignalHandlerOptions
 import rclpy.qos as QoS
 from rcl_interfaces.msg import ParameterDescriptor
 
+import threading
+import queue
 import serial
-import json
 
 class MotorController(Subscriber):
 
@@ -28,19 +29,30 @@ class MotorController(Subscriber):
         self.baud = self.get_parameter('baud').get_parameter_value().integer_value
 
         try:
-            self.ser = serial.Serial(self.port, self.baud, timeout=1)
+            self.ser = serial.Serial(self.port, self.baud, timeout=0)
             self.ser.flushInput()
             self.ser.flushOutput()
-            self.get_logger().info(f'Opened serial port{port} at {baud} baud.')
+            self.get_logger().info(f'Opened serial port{self.port} at {self.baud} baud.')
         except serial.SerialException as e:
-            self.get_logger().error('Failed to open serial port {port}: {e}')
+            self.get_logger().error(f'Failed to open serial port {self.port}: {e}')
             self.ser = None
 
-    def close_serial(self):
+        self.pub = self.create_publisher(String, 'motor_feedback', qos)
+        self.timer = self.create_timer(0.02, self.timer_callback)
+
+        self.write_queue = queue.Queue()
+        self.writer_thread = threading.Thread(target=self.serial_writer, daemon=True)
+        self.writer_thread.start()
+        self.rx_buffer = bytearray()
+
+    def destroy_node(self):
         self.get_logger().info('Shutting down motor_controller')
+        self.write_queue.put(None)
+        self.writer_thread.join(timeout=1.0)
         if self.ser and self.ser.is_open:
             self.get_logger().info('Closing serial port')
             self.ser.close()
+        super().destroy_node()
     
     def listener_callback(self, msg):
         if msg.data == "":
@@ -48,8 +60,33 @@ class MotorController(Subscriber):
         elif (not self.ser) or (not self.ser.is_open):
             self.get_logger().warn(f'Serial port is closed, rejecting command: {msg.data}')
         else:
-            self.get_logger().debug(f'Sending to ESP32 {msg.data}')
-            self.ser.write((msg.data + '\n').encode())
+            self.get_logger().debug(f'Queuing to ESP32: "{msg.data}"')
+            self.write_queue.put(msg.data + '\n')
+
+    def serial_writer(self):
+        while True:
+            msg = self.write_queue.get()
+            if msg is None:
+                break
+            try: 
+                self.ser.write(msg.encode('utf-8'))
+            except Exception as e:
+                self.get_logger().warn(f'Serial write error: {e}')
+
+    def timer_callback(self):
+        try:
+            while self.ser.in_waiting:
+                c = self.ser.read(1)
+                if c == b'\n':
+                    line = self.rx_buffer.decode('utf-8', errors='ignore').strip()
+                    self.rx_buffer.clear()
+                    if line:
+                        self.pub.publish(String(data=line))
+                        self.get_logger().debug(f'Received from Esp32: {line}')
+                else:
+                    self.rx_buffer += c
+        except Exception as e:
+            self.get_logger().warn(f'Serial read error: {e}')
 
 
 def main(args=None):
@@ -57,11 +94,6 @@ def main(args=None):
     rclpy.init(args=args, signal_handler_options=signal_handler_choice)
 
     node = MotorController()
-
-    def shutdown_hook():
-        node.close_serial()
-
-    rclpy.get_default_context().on_shutdown(shutdown_hook)
 
     try:
         while rclpy.ok():
