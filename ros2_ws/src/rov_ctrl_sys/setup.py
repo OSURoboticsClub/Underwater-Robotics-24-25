@@ -28,7 +28,8 @@ setup(
     entry_points={
         'console_scripts': [
             'joy_to_motor = rov_ctrl_sys.joy_to_motor:main',
-            'motor_controller = rov_ctrl_sys.motor_controller:main'
+            'motor_controller = rov_ctrl_sys.motor_controller:main',
+            'window = rov_ctrl_sys.window:main',
         ],
     },
 )
