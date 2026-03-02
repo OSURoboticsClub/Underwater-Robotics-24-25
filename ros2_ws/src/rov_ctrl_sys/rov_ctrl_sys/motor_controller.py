@@ -75,7 +75,7 @@ class MotorController(Subscriber):
 
     def timer_callback(self):
         try:
-            while self.ser.in_waiting:
+            while self.ser and self.ser.in_waiting:
                 c = self.ser.read(1)
                 if c == b'\n':
                     line = self.rx_buffer.decode('utf-8', errors='ignore').strip()
