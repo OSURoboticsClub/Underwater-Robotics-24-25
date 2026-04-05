@@ -5,16 +5,12 @@ from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    lateral_mod = LaunchConfiguration('lateral_mod')
-    yaw_mod = LaunchConfiguration('yaw_mod')
-    vertical_mod = LaunchConfiguration('vertical_mod')
-    pitch_roll_mod = LaunchConfiguration('pitch_roll_mod')
 
     return LaunchDescription([
-        DeclareLaunchArgument('lateral_mod', default_value=lateral_mod),
-        DeclareLaunchArgument('yaw_mod', default_value=yaw_mod),
-        DeclareLaunchArgument('vertical_mod', default_value=vertical_mod),
-        DeclareLaunchArgument('pitch_roll_mod', default_value=pitch_roll_mod),
+        DeclareLaunchArgument('lateral_mod', default_value='1.0'),
+        DeclareLaunchArgument('yaw_mod', default_value='1.0'),
+        DeclareLaunchArgument('vertical_mod', default_value='1.0'),
+        DeclareLaunchArgument('pitch_roll_mod', default_value='1.0'),
         Node(
             package='rov_ctrl_sys',
             executable='joy_to_motor',
@@ -31,16 +27,12 @@ def generate_launch_description():
                 '--log-level', 'joy_to_motor:=DEBUG',
             ],
         ),
-        Node(
-            package='rov_ctrl_sys',
-            executable='motor_controller',
-            name='motor_controller',
-            output='log',  # still logs to ros log
-            arguments=[
-                '--ros-args',
-                '--log-level', 'motor_controller:=DEBUG',
-            ],
-        ),
+#         Node(
+#             package='rov_ctrl_sys',
+#             executable='joy_to_servo',
+#             name='joy_to_servo',
+#             output='log',
+#         ),
         Node(
             package='joy',
             executable='joy_node',

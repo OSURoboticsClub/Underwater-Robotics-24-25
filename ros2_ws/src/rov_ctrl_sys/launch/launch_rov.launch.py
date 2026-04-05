@@ -3,25 +3,26 @@ from launch.actions import IncludeLaunchDescription
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
-
 def generate_launch_description():
     launch_dir = PathJoinSubstitution([FindPackageShare('rov_ctrl_sys'), 'launch'])
 
     return LaunchDescription([
         IncludeLaunchDescription(
-            PathJoinSubstitution([launch_dir, 'rov_movement.launch.py']),
+            PathJoinSubstitution([launch_dir, 'motor_control.launch.py']),
             launch_arguments={
-                    'lateral_mod': '1.0',
-                    'yaw_mod': '1.0',
-                    'vertical_mod': '1.0',
-                    'pitch_roll_mod': '1.0',
+                'port': '/dev/ttyUSB0',
             }.items()
         ),
         IncludeLaunchDescription(
-            PathJoinSubstitution([launch_dir, 'rov_camera.launch.py']),
+            PathJoinSubstitution([launch_dir, 'servo_control.launch.py']),
+            launch_arguments={
+                'port': '/dev/ttyUSB0',
+            }.items()
+        ),
+        IncludeLaunchDescription(
+            PathJoinSubstitution([launch_dir, 'camera.launch.py']),
             launch_arguments={
                     'video_device': '/dev/main_camera',
-                    'pixel_format': 'yuyv2rgb',
             }.items()
         ),
     ])
