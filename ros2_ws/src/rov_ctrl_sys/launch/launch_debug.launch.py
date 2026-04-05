@@ -9,13 +9,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         IncludeLaunchDescription(
-            PathJoinSubstitution([launch_dir, 'rov_movement.launch.py']),
-            launch_arguments={
-                    'lateral_mod': '1.0',
-                    'yaw_mod': '1.0',
-                    'vertical_mod': '1.0',
-                    'pitch_roll_mod': '1.0',
-            }.items()
+            PathJoinSubstitution([launch_dir, 'launch_rov.launch.py']),
         ),
         IncludeLaunchDescription(
             PathJoinSubstitution([launch_dir, 'debug.launch.py'])

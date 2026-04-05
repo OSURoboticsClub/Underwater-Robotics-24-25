@@ -40,7 +40,7 @@ def generate_launch_description():
                 on_exit=[
                     LogInfo(msg=('User closed the console window')),
                     EmitEvent(event=Shutdown(
-                        reason='Window closed'))
+                        reason='Console closed'))
                 ]
             )
         ),

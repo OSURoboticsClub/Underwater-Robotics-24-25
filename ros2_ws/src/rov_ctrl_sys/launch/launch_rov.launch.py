@@ -17,4 +17,11 @@ def generate_launch_description():
                     'pitch_roll_mod': '1.0',
             }.items()
         ),
+        IncludeLaunchDescription(
+            PathJoinSubstitution([launch_dir, 'rov_camera.launch.py']),
+            launch_arguments={
+                    'video_device': '/dev/main_camera',
+                    'pixel_format': 'yuyv2rgb',
+            }.items()
+        ),
     ])
