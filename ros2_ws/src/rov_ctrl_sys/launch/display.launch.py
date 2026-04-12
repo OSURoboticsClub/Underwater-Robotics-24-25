@@ -46,6 +46,16 @@ def generate_launch_description():
     return LaunchDescription([
         display_node,
         Node(
+            package='rov_ctrl_sys',
+            executable='keyboard_to_servo',
+            name='keyboard_to_servo',
+            output='log',
+            arguments=[
+                '--ros-args',
+                '--log-level', 'display:=DEBUG',
+            ],
+        ),
+        Node(
             package='image_transport',
             executable='republish',
             name='camera_uncompressor',

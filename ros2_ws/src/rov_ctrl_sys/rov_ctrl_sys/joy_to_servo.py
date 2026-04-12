@@ -123,7 +123,7 @@ class JoyToServo(SubscriberPublisher):
         if self.commands:
             new_msg = String()
             new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
-            self.get_logger().debug(f"motor_commands: {new_msg.data}")
+            self.get_logger().debug(f"servo_commands: {new_msg.data}")
             return new_msg
         else:
             return None

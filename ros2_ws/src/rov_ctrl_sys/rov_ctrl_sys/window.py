@@ -89,25 +89,30 @@ class Window(Node):
 
         self.held_keys = set()
         self.keymap = {
-                pygame.K_UP: 'UP',
-                pygame.K_DOWN: 'DOWN',
-                pygame.K_LEFT: 'LEFT',
-                pygame.K_RIGHT: 'RIGHT',
-                pygame.K_LEFTBRACKET: "[",
-                pygame.K_RIGHTBRACKET: "]",
-                pygame.K_w: 'W',
-                pygame.K_a: 'A',
-                pygame.K_s: 'S',
-                pygame.K_d: 'D',
-                pygame.K_SPACE: 'SPACE',
-                pygame.K_RETURN: 'ENTER',
-                pygame.K_1: '1',
-                pygame.K_2: '2',
-                pygame.K_3: '3',
-                pygame.K_4: '4',
-                pygame.K_ESCAPE: "ESC",
-                pygame.K_DELETE: "DEL"
+                pygame.K_UP: 'UP',          # change controls
+                pygame.K_DOWN: 'DOWN',      # ^^
+                pygame.K_LEFT: 'LEFT',      # ^^
+                pygame.K_RIGHT: 'RIGHT',    # ^^
+                pygame.K_BACKSPACE: "BACKSPACE", # reset
+                pygame.K_c: 'C', # camera
+                pygame.K_d: 'D', # dome lights
+                pygame.K_e: 'E', # external lights
+                pygame.K_x: 'X',
+                pygame.K_y: 'Y',
+#                 pygame.K_w: 'W',
+#                 pygame.K_a: 'A',
+#                 pygame.K_s: 'S',
+#                 pygame.K_d: 'D',
+#                 pygame.K_SPACE: 'SPACE',
+#                 pygame.K_RETURN: 'ENTER',
+#                 pygame.K_1: '1',
+#                 pygame.K_2: '2',
+#                 pygame.K_3: '3',
+#                 pygame.K_4: '4',
+                pygame.K_ESCAPE: "ESC", # used to close window
+                pygame.K_DELETE: "DEL"  # ^^
                 }
+        self.last_msg = None
 
 
         self.pub = self.create_publisher(String, 'key_states', 10)
@@ -169,6 +174,9 @@ class Window(Node):
             msg = String()
             msg.data = ",".join(self.held_keys) # join(sorted(self.held_keys))
             self.pub.publish(msg)
+            self.last_msg = msg
+        elif self.last_msg:
+            self.pub.publish(self.last_msg)
 
         updated_rects = []
 
