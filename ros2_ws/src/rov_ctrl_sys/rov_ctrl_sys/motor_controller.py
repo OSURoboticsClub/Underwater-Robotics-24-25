@@ -46,7 +46,7 @@ class MotorController(Subscriber):
         self.rx_buffer = bytearray()
 
     def destroy_node(self):
-        self.get_logger().info('Shutting down motor_controller')
+        self.get_logger().info(f'Shutting down {self.get_name()}')
         self.write_queue.put(None)
         self.writer_thread.join(timeout=1.0)
         if self.ser and self.ser.is_open:
