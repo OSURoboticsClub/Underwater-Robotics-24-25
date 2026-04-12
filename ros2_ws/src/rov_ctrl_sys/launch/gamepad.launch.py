@@ -27,12 +27,12 @@ def generate_launch_description():
                 '--log-level', 'joy_to_motor:=DEBUG',
             ],
         ),
-#         Node(
-#             package='rov_ctrl_sys',
-#             executable='joy_to_servo',
-#             name='joy_to_servo',
-#             output='log',
-#         ),
+        Node(
+            package='rov_ctrl_sys',
+            executable='joy_to_servo',
+            name='joy_to_servo',
+            output='log',
+        ),
         Node(
             package='joy',
             executable='joy_node',

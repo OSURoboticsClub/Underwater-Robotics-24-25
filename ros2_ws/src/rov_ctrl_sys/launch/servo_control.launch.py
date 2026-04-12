@@ -9,17 +9,21 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('port', default_value=port),
-#         Node(
-#             package='rov_ctrl_sys',
-#             executable='servo_controller',
-#             name='servo_controller',
-#             output='log',  # still logs to ros log
-#             parameters=[{
-#                 'port': LaunchConfiguration('port'),
-#             }],
-#             arguments=[
-#                 '--ros-args',
-#                 '--log-level', 'servo_controller:=DEBUG',
-#             ],
-#         ),
+        Node(
+            package='rov_ctrl_sys',
+            executable='motor_controller',
+            name='servo_controller',
+            output='log',  # still logs to ros log
+            parameters=[{
+                'port': LaunchConfiguration('port'),
+            }],
+            remappings=[
+                ('motor_command','/ground/servo_command'),
+                ('motor_feedback','servo_feedback'),
+            ],
+            arguments=[
+                '--ros-args',
+                '--log-level', 'servo_controller:=DEBUG',
+            ],
+        ),
     ])

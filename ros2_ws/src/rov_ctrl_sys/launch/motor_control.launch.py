@@ -17,6 +17,9 @@ def generate_launch_description():
             parameters=[{
                 'port': LaunchConfiguration('port'),
             }],
+            remappings=[
+                ('motor_command','/ground/motor_command'),
+            ],
             arguments=[
                 '--ros-args',
                 '--log-level', 'motor_controller:=DEBUG',

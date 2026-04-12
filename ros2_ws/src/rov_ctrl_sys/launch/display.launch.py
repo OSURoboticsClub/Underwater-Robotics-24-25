@@ -34,6 +34,9 @@ def generate_launch_description():
         executable='window',
         name='display',
         output='log',
+        remappings=[
+            ('image_raw','image_uncompressed'),
+        ],
         arguments=[
             '--ros-args',
             '--log-level', 'display:=DEBUG',
@@ -42,6 +45,19 @@ def generate_launch_description():
 
     return LaunchDescription([
         display_node,
+        Node(
+            package='image_transport',
+            executable='republish',
+            name='camera_uncompressor',
+            remappings=[
+                ('in/compressed', '/rov/image_raw/compressed'),
+                ('out', '/ground/image_uncompressed'),
+            ],
+            arguments=[
+                'compressed', 'raw', 
+            ],
+            output='log'
+        ),
 #         Node(
 #             package='rov_ctrl_sys',
 #             executable='keyboard_to_servo',
