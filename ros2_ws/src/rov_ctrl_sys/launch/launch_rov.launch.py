@@ -13,13 +13,13 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PathJoinSubstitution([launch_dir, 'motor_control.launch.py']),
                 launch_arguments={
-                    'port': '/dev/ttyUSB0',
+                    'port': '/dev/esp1',
                 }.items()
             ),
             IncludeLaunchDescription(
                 PathJoinSubstitution([launch_dir, 'servo_control.launch.py']),
                 launch_arguments={
-                    'port': '/dev/ttyUSB1',
+                    'port': '/dev/esp2',
                 }.items()
             ),
             IncludeLaunchDescription(

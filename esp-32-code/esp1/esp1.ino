@@ -32,15 +32,15 @@ struct Motor {
 };
 
 Motor motors[] = {
-  Motor(Servo(), "lfl",  4), // Lateral Front Left - 1
-  Motor(Servo(), "lfr", 32, -404), // Lateral Front Right - 2
-  Motor(Servo(), "lbl", 26, -394), // Lateral Back Left - 7
-  Motor(Servo(), "lbr", 23, -394), // Lateral Back Right - 8
+  Motor(Servo(), "lfl", 19), // Lateral Front Left - 1
+  Motor(Servo(), "lfr", 18, 0), // Lateral Front Right - 2
+  Motor(Servo(), "vfl", 17), // Vertical Front Left - 3
+  Motor(Servo(), "vfr", 16), // Vertical Front Right - 4
+  Motor(Servo(), "vbl",  4), // Vertical Back Left - 5
+  Motor(Servo(), "vbr", 13),  // Vertical Back Right - 6
+  Motor(Servo(), "lbl", 14, 020), // Lateral Back Left - 7
+  Motor(Servo(), "lbr", 27, 0) // Lateral Back Right - 8
 
-  Motor(Servo(), "vfl", 18), // Vertical Front Left - 3
-  Motor(Servo(), "vfr", 33), // Vertical Front Right - 4
-  Motor(Servo(), "vbl", 19), // Vertical Back Left - 5
-  Motor(Servo(), "vbr", 25)  // Vertical Back Right - 6
 };
 
 const int num_motors = 8;
@@ -51,6 +51,8 @@ String offsets[] = {
   "lbl_offset",
   "lbr_offset"
 };
+
+const int pressure_sensor = 34;
 
 #define BUFFER_SIZE 160
 String input_string, cmd, target, value;
@@ -75,7 +77,7 @@ void setup() {
     if (motors[i].pin != -1) {
       motors[i].servo.attach(motors[i].pin);
       motors[i].servo.writeMicroseconds(1100);
-      motors[i].written_pwm = 1200;
+      motors[i].written_pwm = 1100;
     }
   }
   delay(750);
@@ -87,6 +89,8 @@ void setup() {
     }
   }
   delay(750);
+
+  pinMode(pressure_sensor, INPUT);
 }
 
 void process_commands(String &input) {  
@@ -172,6 +176,7 @@ void loop() {
     // Serial.println(output);
     // Serial.println("Hello, World!");
     current_time = millis();
-    Serial.println(motors[0].written_pwm);
+    Serial.println(analogRead(pressure_sensor));
+//     Serial.println(motors[0].written_pwm);
   }
 }

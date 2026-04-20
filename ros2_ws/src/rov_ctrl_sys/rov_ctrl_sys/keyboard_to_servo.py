@@ -47,15 +47,15 @@ class KeyboardToServo(SubscriberPublisher):
                 'ext_lights': ''
         }
         self.move_quantity = {
-                'camera': 0.02,
+                'camera': 0.04,
                 'dome_lights': 0.02,
                 'ext_lights': 0.02,
         }
 
-    def process_motor(self, key, value):
+    def process_motor(self, key, value, start=1000, end=2000):
         value = clamp(value, -1.0, 1.0)
         if value != self.old_values[key]:
-            pwm = to_pwm(value)
+            pwm = to_pwm(value, start, end)
             self.commands[key] = pwm
             self.old_values[key] = value
         else:
@@ -80,19 +80,19 @@ class KeyboardToServo(SubscriberPublisher):
 
         if self.vertical[self.target] != '':
             if "UP" in keys:
-                vertical = self.old_values[self.vertical[self.target]] + self.move_quantity[self.target]
+                vertical = clamp(self.old_values[self.vertical[self.target]] + self.move_quantity[self.target],-1.0,1.0)
             elif "DOWN" in keys:
-                vertical = self.old_values[self.vertical[self.target]] - self.move_quantity[self.target]
+                vertical = clamp(self.old_values[self.vertical[self.target]] - self.move_quantity[self.target],-1.0,1.0)
             else:
-                vertical = self.old_values[self.vertical[self.target]]
+                vertical = clamp(self.old_values[self.vertical[self.target]],-1.0,1.0)
 
         if self.horizontal[self.target] != '':
             if "RIGHT" in keys:
-                horizontal = self.old_values[self.horizontal[self.target]] + self.move_quantity[self.target]
+                horizontal = clamp(self.old_values[self.horizontal[self.target]] + self.move_quantity[self.target],-1.0,1.0)
             elif "LEFT" in keys:
-                horizontal = self.old_values[self.horizontal[self.target]] - self.move_quantity[self.target]
+                horizontal = clamp(self.old_values[self.horizontal[self.target]] - self.move_quantity[self.target],-1.0,1.0)
             else:
-                horizontal = self.old_values[self.horizontal[self.target]]
+                horizontal = clamp(self.old_values[self.horizontal[self.target]],-1.0,1.0)
 
         if "BACKSPACE" in keys:
             if self.target == 'camera':
@@ -105,14 +105,14 @@ class KeyboardToServo(SubscriberPublisher):
 
         if self.vertical[self.target] != '':
             if self.target == 'camera':
-                self.process_motor(self.vertical['camera'], vertical)
+                self.process_motor(self.vertical['camera'], vertical, 1100, 1900)
             else:
-                vertical = clamp(vertical, 0.0, 1.0)
+                horizontal = clamp(vertical, 0.0, 1.0)
                 self.process_command(self.vertical[self.target], vertical)
 
         if self.horizontal[self.target] != '':
             if self.target == 'camera':
-                self.process_motor(self.horizontal['camera'], horizontal)
+                self.process_motor(self.horizontal['camera'], horizontal, 1200, 1800)
             else:
                 horizontal = clamp(horizontal, 0.0, 1.0)
                 self.process_command(self.horizontal[self.target], horizontal)
@@ -120,7 +120,7 @@ class KeyboardToServo(SubscriberPublisher):
 
         if self.commands:
             new_msg = String()
-            new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
+            new_msg.data = ','.join(f'{k}={v:0.2f}' for k,v in self.commands.items())
             self.get_logger().debug(f"servo_commands: {new_msg.data}")
             self.commands.clear()
             return new_msg

@@ -115,10 +115,10 @@ class JoyToServo(SubscriberPublisher):
         else:
             manip_rotate = 0.0
 
-        self.process_motor('manip', manip)
+        self.process_motor('manip', manip, False)
         self.process_motor('manip_rotate', manip_rotate)
-        self.process_motor('dome_lights', dome_lights)
-        self.process_motor('ext_lights', ext_lights)
+        self.process_motor('dome_lights', dome_lights, False)
+        self.process_motor('ext_lights', ext_lights, False)
 
         if self.commands:
             new_msg = String()
