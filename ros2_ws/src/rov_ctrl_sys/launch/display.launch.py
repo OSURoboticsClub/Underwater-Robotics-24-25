@@ -37,10 +37,7 @@ def generate_launch_description():
         remappings=[
             ('image_raw','image_uncompressed'),
         ],
-        arguments=[
-            '--ros-args',
-            '--log-level', 'display:=DEBUG',
-        ],
+        ros_arguments=['--log-level', 'debug'],
     )
 
     return LaunchDescription([
@@ -50,10 +47,7 @@ def generate_launch_description():
             executable='keyboard_to_servo',
             name='keyboard_to_servo',
             output='log',
-            arguments=[
-                '--ros-args',
-                '--log-level', 'display:=DEBUG',
-            ],
+            ros_arguments=['--log-level', 'debug'],
         ),
         Node(
             package='image_transport',
@@ -68,12 +62,6 @@ def generate_launch_description():
             ],
             output='log'
         ),
-#         Node(
-#             package='rov_ctrl_sys',
-#             executable='keyboard_to_servo',
-#             name='keyboard_to_servo',
-#             output='log',
-#         ),
         RegisterEventHandler(
             OnProcessExit(
                 target_action=display_node,

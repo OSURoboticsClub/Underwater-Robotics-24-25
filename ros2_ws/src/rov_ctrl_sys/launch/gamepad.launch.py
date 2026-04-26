@@ -22,16 +22,14 @@ def generate_launch_description():
                 'vertical_mod': LaunchConfiguration('vertical_mod'),
                 'pitch_roll_mod': LaunchConfiguration('pitch_roll_mod'),
             }],
-            arguments=[
-                '--ros-args',
-                '--log-level', 'joy_to_motor:=DEBUG',
-            ],
+            ros_arguments=['--log-level', 'debug'],
         ),
         Node(
             package='rov_ctrl_sys',
             executable='joy_to_servo',
             name='joy_to_servo',
             output='log',
+            ros_arguments=['--log-level', 'debug'],
         ),
         Node(
             package='joy',

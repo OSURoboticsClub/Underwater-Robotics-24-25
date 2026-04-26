@@ -9,6 +9,7 @@
 
   <depend>rclpy</depend>
   <depend>rclpy_interfaces</depend>
+  <depend>usb_cam</depend>
 
   <exec_depend>launch_ros</exec_depend>
 
