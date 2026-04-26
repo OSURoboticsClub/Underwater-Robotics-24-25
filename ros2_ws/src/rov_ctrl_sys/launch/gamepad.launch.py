@@ -7,10 +7,10 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
 
     return LaunchDescription([
-        DeclareLaunchArgument('lateral_mod', default_value='1.0'),
-        DeclareLaunchArgument('yaw_mod', default_value='1.0'),
-        DeclareLaunchArgument('vertical_mod', default_value='1.0'),
-        DeclareLaunchArgument('pitch_roll_mod', default_value='1.0'),
+        DeclareLaunchArgument('lateral_mod', default_value='0.75'),
+        DeclareLaunchArgument('yaw_mod', default_value='0.75'),
+        DeclareLaunchArgument('vertical_mod', default_value='0.75'),
+        DeclareLaunchArgument('pitch_roll_mod', default_value='0.75'),
         Node(
             package='rov_ctrl_sys',
             executable='joy_to_motor',
