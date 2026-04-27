@@ -58,6 +58,9 @@ class JoyToMotor(SubscriberPublisher):
         self.declare_parameter('pitch_roll_mod', 0.75, pitch_roll_mod_descriptor)
         self.pitch_roll_mod = self.get_parameter('pitch_roll_mod').get_parameter_value().double_value
 
+        self.declare_parameter('allow_rolling', True)
+        self.allow_rolling = self.get_parameter('allow_rolling').get_parameter_value().bool_value
+
         self.motor_parameters = {}
         self.declare_parameter('lfl_mod', 1.0)
         self.declare_parameter('lfr_mod', 1.0)
@@ -91,6 +94,7 @@ class JoyToMotor(SubscriberPublisher):
         self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
         self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
         self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
+        self.get_logger().info(f'  allow_rolling: {self.allow_rolling}')
 
     def process_motor(self, key, value):
         value = clamp(value, -1.0, 1.0)
@@ -156,8 +160,14 @@ class JoyToMotor(SubscriberPublisher):
         forward = msg.axes[1]
         strafe = msg.axes[0]
         turn = msg.axes[3]
-        roll = msg.axes[6]
-        pitch = msg.axes[7]
+
+        if self.allow_rolling:
+            roll = msg.axes[6]
+            pitch = msg.axes[7]
+        else:
+            roll = 0.0
+            pitch = 0.0
+
         if not self.ltrigger_been_pressed and not self.rtrigger_been_pressed:
             lift = 0.0
         elif not self.ltrigger_been_pressed and self.rtrigger_been_pressed:

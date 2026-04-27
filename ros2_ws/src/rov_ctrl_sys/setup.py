@@ -32,6 +32,7 @@ setup(
             'keyboard_to_servo = rov_ctrl_sys.keyboard_to_servo:main',
             'motor_controller = rov_ctrl_sys.motor_controller:main',
             'window = rov_ctrl_sys.window:main',
+            'calibrate_motors = rov_ctrl_sys.calibrate_motors:main',
         ],
     },
 )

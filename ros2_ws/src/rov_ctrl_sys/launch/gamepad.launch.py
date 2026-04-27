@@ -11,6 +11,7 @@ def generate_launch_description():
         DeclareLaunchArgument('yaw_mod', default_value='0.75'),
         DeclareLaunchArgument('vertical_mod', default_value='0.75'),
         DeclareLaunchArgument('pitch_roll_mod', default_value='0.75'),
+        DeclareLaunchArgument('allow_rolling', default_value='True'),
         Node(
             package='rov_ctrl_sys',
             executable='joy_to_motor',
@@ -21,6 +22,7 @@ def generate_launch_description():
                 'yaw_mod': LaunchConfiguration('yaw_mod'),
                 'vertical_mod': LaunchConfiguration('vertical_mod'),
                 'pitch_roll_mod': LaunchConfiguration('pitch_roll_mod'),
+                'allow_rolling': LaunchConfiguration('allow_rolling'),
             }],
 #             ros_arguments=['--log-level', 'debug'],
         ),
