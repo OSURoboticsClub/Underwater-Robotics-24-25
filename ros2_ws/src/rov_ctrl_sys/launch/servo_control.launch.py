@@ -21,6 +21,6 @@ def generate_launch_description():
                 ('motor_command','/ground/servo_command'),
                 ('motor_feedback','servo_feedback'),
             ],
-            ros_arguments=['--log-level', 'debug'],
+#             ros_arguments=['--log-level', 'debug'],
         ),
     ])

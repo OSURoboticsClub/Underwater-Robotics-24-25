@@ -20,6 +20,6 @@ def generate_launch_description():
             remappings=[
                 ('motor_command','/ground/motor_command'),
             ],
-            ros_arguments=['--log-level', 'debug'],
+#             ros_arguments=['--log-level', 'debug'],
         ),
     ])

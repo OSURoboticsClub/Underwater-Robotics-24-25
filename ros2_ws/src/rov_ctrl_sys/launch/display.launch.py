@@ -37,7 +37,7 @@ def generate_launch_description():
         remappings=[
             ('image_raw','image_uncompressed'),
         ],
-        ros_arguments=['--log-level', 'debug'],
+#         ros_arguments=['--log-level', 'debug'],
     )
 
     return LaunchDescription([
@@ -47,7 +47,7 @@ def generate_launch_description():
             executable='keyboard_to_servo',
             name='keyboard_to_servo',
             output='log',
-            ros_arguments=['--log-level', 'debug'],
+#             ros_arguments=['--log-level', 'debug'],
         ),
         Node(
             package='image_transport',

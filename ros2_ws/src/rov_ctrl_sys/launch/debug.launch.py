@@ -32,6 +32,11 @@ def generate_launch_description():
         executable='rqt_console',
         name='console',
     )
+    topic_node = Node(
+        package='rqt_topic',
+        executable='rqt_topic',
+        name='topic'
+    )
     return LaunchDescription([
         console_node,
         RegisterEventHandler(
@@ -40,7 +45,19 @@ def generate_launch_description():
                 on_exit=[
                     LogInfo(msg=('User closed the console window')),
                     EmitEvent(event=Shutdown(
-                        reason='Console closed'))
+                        reason='Console window closed'))
+                ]
+            )
+        ),
+
+        topic_node,
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=topic_node,
+                on_exit=[
+                    LogInfo(msg=('User closed the topic window')),
+                    EmitEvent(event=Shutdown(
+                        reason='Topic window closed'))
                 ]
             )
         ),
