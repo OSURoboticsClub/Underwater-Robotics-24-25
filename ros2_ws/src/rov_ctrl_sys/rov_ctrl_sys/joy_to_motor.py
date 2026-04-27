@@ -2,7 +2,8 @@ import rclpy
 from rov_ctrl_sys.subscriber_publisher_general import SubscriberPublisher
 from rclpy.signals import SignalHandlerOptions
 import rclpy.qos as QoS
-from rcl_interfaces.msg import ParameterDescriptor
+from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult
+from rclpy.parameter import Parameter
 
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
@@ -48,14 +49,42 @@ class JoyToMotor(SubscriberPublisher):
         vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
         pitch_roll_mod_descriptor = ParameterDescriptor(description='The modifier for the pitch and roll of the ROV')
 
-        self.declare_parameter('lateral_mod', 1.0, lateral_mod_descriptor)
+        self.declare_parameter('lateral_mod', 0.75, lateral_mod_descriptor)
         self.lateral_mod = self.get_parameter('lateral_mod').get_parameter_value().double_value
-        self.declare_parameter('yaw_mod', 1.0, yaw_mod_descriptor)
+        self.declare_parameter('yaw_mod', 0.75, yaw_mod_descriptor)
         self.yaw_mod = self.get_parameter('yaw_mod').get_parameter_value().double_value
-        self.declare_parameter('vertical_mod', 1.0, vertical_mod_descriptor)
+        self.declare_parameter('vertical_mod', 0.75, vertical_mod_descriptor)
         self.vertical_mod = self.get_parameter('vertical_mod').get_parameter_value().double_value
-        self.declare_parameter('pitch_roll_mod', 1.0, pitch_roll_mod_descriptor)
+        self.declare_parameter('pitch_roll_mod', 0.75, pitch_roll_mod_descriptor)
         self.pitch_roll_mod = self.get_parameter('pitch_roll_mod').get_parameter_value().double_value
+
+        self.motor_parameters = {}
+        self.declare_parameter('lfl_mod', 1.0)
+        self.declare_parameter('lfr_mod', 1.0)
+        self.declare_parameter('lbl_mod', 1.0)
+        self.declare_parameter('lbr_mod', 1.0)
+        self.declare_parameter('vfl_mod', 1.0)
+        self.declare_parameter('vfr_mod', 1.0)
+        self.declare_parameter('vbl_mod', 1.0)
+        self.declare_parameter('vbr_mod', 1.0)
+        self.motor_parameters['lfl_mod'] = 1.0
+        self.motor_parameters['lfr_mod'] = 1.0
+        self.motor_parameters['lbl_mod'] = 1.0
+        self.motor_parameters['lbr_mod'] = 1.0
+        self.motor_parameters['vfl_mod'] = 1.0
+        self.motor_parameters['vfr_mod'] = 1.0
+        self.motor_parameters['vbl_mod'] = 1.0
+        self.motor_parameters['vbr_mod'] = 1.0
+        self.lfl_mod = self.get_parameter('lfl_mod').get_parameter_value().double_value
+        self.lfr_mod = self.get_parameter('lfr_mod').get_parameter_value().double_value
+        self.lbl_mod = self.get_parameter('lbl_mod').get_parameter_value().double_value
+        self.lbr_mod = self.get_parameter('lbr_mod').get_parameter_value().double_value
+        self.vfl_mod = self.get_parameter('vfl_mod').get_parameter_value().double_value
+        self.vfr_mod = self.get_parameter('vfr_mod').get_parameter_value().double_value
+        self.vbl_mod = self.get_parameter('vbl_mod').get_parameter_value().double_value
+        self.vbr_mod = self.get_parameter('vbr_mod').get_parameter_value().double_value
+
+        self.add_on_set_parameters_callback(self._on_params_changed)
 
         self.get_logger().info(f'Parameters:')
         self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
@@ -71,6 +100,27 @@ class JoyToMotor(SubscriberPublisher):
             self.old_values[key] = value
         else:
             self.commands.pop(key, None)
+    
+    def _on_params_changed(self, params):
+        for p in params:
+            if p.name in self.motor_parameters:
+                if p.type_ not in (Parameter.Type.DOUBLE, Parameter.Type.INTEGER):
+                    return SetParametersResult(
+                        successful=False,
+                        reason='motor scalars must be numeric'
+                    )
+
+                if p.value < 0:
+                    return SetParametersResult(
+                        successful=False,
+                        reason='motor scalars must be nonnegative'
+                    )
+        
+        for p in params:
+            if p.name in self.motor_parameters:
+                self.motor_parameters[p.name] = float(p.value)
+
+        return SetParametersResult(successful=True)
 
     # msg has an axes array of length 8
     # msg.axes[0] left stick X: 1=left, -1=right
@@ -118,15 +168,15 @@ class JoyToMotor(SubscriberPublisher):
             lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
         lift = clamp(lift, -1.0, 1.0)
 
-        lfl = (forward - strafe) * self.lateral_mod - turn * self.yaw_mod # Lateral Front Left
-        lfr = (forward + strafe) * self.lateral_mod - turn * self.yaw_mod # Lateral Front Right
-        lbl = (forward + strafe) * self.lateral_mod + turn * self.yaw_mod # Lateral Back Left
-        lbr = (forward - strafe) * self.lateral_mod + turn * self.yaw_mod # Lateral Back Right
+        lfl = ( (forward - strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lfl_mod']
+        lfr = ( (forward + strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lfr_mod']
+        lbl = ( (forward + strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lbl_mod']
+        lbr = ( (forward - strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lbr_mod']
     
-        vfl = self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod # Vertical Front Left
-        vfr = self.vertical_mod * lift + ( roll + pitch) * self.pitch_roll_mod # Vertical Front Right
-        vbl = self.vertical_mod * lift + (-roll - pitch) * self.pitch_roll_mod # Vertical Back Left
-        vbr = self.vertical_mod * lift + (-roll + pitch) * self.pitch_roll_mod # Vertical Back Right
+        vfl = ( self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfl_mod']
+        vfr = ( self.vertical_mod * lift + ( roll + pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfr_mod']
+        vbl = ( self.vertical_mod * lift + (-roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vbl_mod']
+        vbr = ( self.vertical_mod * lift + (-roll + pitch) * self.pitch_roll_mod ) * self.motor_parameters['vbr_mod']
 
         self.process_motor('lfl', lfl)
         self.process_motor('lfr', lfr)

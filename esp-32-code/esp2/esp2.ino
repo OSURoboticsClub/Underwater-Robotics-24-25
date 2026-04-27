@@ -53,7 +53,7 @@ Motor motors[] = {
 const int num_motors = 3;
 
 const int manip = 13;
-const int dome_lights = -1;
+const int dome_lights = 17;
 const int ext_lights = 26;
 
 /*
@@ -146,33 +146,35 @@ void process_commands(String &input) {
       int throttle = value.toInt();
       if (throttle == 0) {
         digitalWrite(manip, LOW);
-        Serial.println("Closing manip");
+//        Serial.println("Closing manip");
       } else {
         digitalWrite(manip, HIGH);
-        Serial.println("Opening manip");
+//        Serial.println("Opening manip");
       }
     } else if (target == "manip_rotate") {
       int i = 0;
       int throttle = value.toInt();
       if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
-        Serial.println("Setting manipulator to new value");
+//        Serial.println("Setting manipulator to new value");
         motors[i].pwm = throttle;
       }
     } else if (target == "dome_lights") {
       int throttle = value.toInt();
       if (throttle == 0) {
         digitalWrite(dome_lights, LOW);
+//        Serial.println("Toggling dome lights off");
       } else {
         digitalWrite(dome_lights, HIGH);
+//        Serial.println("Toggling dome lights on");
       }
     } else if (target == "ext_lights") {
       int throttle = value.toInt();
       if (throttle == 0) {
         digitalWrite(ext_lights, LOW);
-        Serial.println("Turning lights off");
+//        Serial.println("Turning lights off");
       } else {
         digitalWrite(ext_lights, HIGH);
-        Serial.println("Turning lights on");
+//        Serial.println("Turning lights on");
       }
 
       /*

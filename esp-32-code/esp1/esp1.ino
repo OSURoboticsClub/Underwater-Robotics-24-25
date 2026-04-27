@@ -9,21 +9,24 @@ struct Motor {
   int pwm;
   int written_pwm;
   int offset;
+  const int reverse;
 
-  Motor(const Servo& servo, const char* name, const int pin):
+  Motor(const Servo& servo, const char* name, const int pin, const int reverse):
     servo(servo),
     name(name),
     pin(pin),
+    reverse(reverse),
     pwm(1500),
     written_pwm(0),
     offset(0) {
 
     }
 
-  Motor(const Servo& servo, const char* name, const int pin, int offset):
+  Motor(const Servo& servo, const char* name, const int pin, const int reverse, int offset):
     servo(servo),
     name(name),
     pin(pin),
+    reverse(reverse),
     pwm(1500),
     written_pwm(0),
     offset(offset) {
@@ -32,14 +35,14 @@ struct Motor {
 };
 
 Motor motors[] = {
-  Motor(Servo(), "lfl", 19), // Lateral Front Left - 1
-  Motor(Servo(), "lfr", 18, 0), // Lateral Front Right - 2
-  Motor(Servo(), "vfl", 17), // Vertical Front Left - 3
-  Motor(Servo(), "vfr", 16), // Vertical Front Right - 4
-  Motor(Servo(), "vbl",  4), // Vertical Back Left - 5
-  Motor(Servo(), "vbr", 13),  // Vertical Back Right - 6
-  Motor(Servo(), "lbl", 14, 020), // Lateral Back Left - 7
-  Motor(Servo(), "lbr", 27, 0) // Lateral Back Right - 8
+  Motor(Servo(), "lfl", 19, -1), // Lateral Front Left - 1
+  Motor(Servo(), "lfr", 18,  1), // Lateral Front Right - 2
+  Motor(Servo(), "vfl", 17,  1), // Vertical Front Left - 3
+  Motor(Servo(), "vfr", 16, -1), // Vertical Front Right - 4
+  Motor(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
+  Motor(Servo(), "vbr", 13, -1),  // Vertical Back Right - 6
+  Motor(Servo(), "lbl", 14, -1, 20), // Lateral Back Left - 7
+  Motor(Servo(), "lbr", 27,  1) // Lateral Back Right - 8
 
 };
 
@@ -129,7 +132,7 @@ void process_commands(String &input) {
     if (throttle >= 1000 && throttle <= 2000) {
       for (int i = 0; i < num_motors; i++) {
         if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
-          motors[i].pwm = throttle;
+          motors[i].pwm = 1500 + ((throttle - 1500) * motors[i].reverse);
           break;
         }
       }
@@ -170,13 +173,13 @@ void loop() {
     }
   }
 
-  if ((millis() - current_time) >= 100) {
+  if ((millis() - current_time) >= 200) {
     // telemetry, for later
     // output = output.substring(0,output.length());
     // Serial.println(output);
-    // Serial.println("Hello, World!");
+//     Serial.println("Hello, World!");
     current_time = millis();
-    Serial.println(analogRead(pressure_sensor));
-//     Serial.println(motors[0].written_pwm);
+//     Serial.println(analogRead(pressure_sensor));
+    Serial.println(motors[3].written_pwm);
   }
 }
