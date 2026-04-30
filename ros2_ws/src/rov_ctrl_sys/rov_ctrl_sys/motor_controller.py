@@ -60,7 +60,7 @@ class MotorController(Subscriber):
         elif (not self.ser) or (not self.ser.is_open):
             self.get_logger().warn(f'Serial port is closed, rejecting command: {msg.data}')
         else:
-            self.get_logger().debug(f'Queuing to ESP32: "{msg.data}"')
+            self.get_logger().info(f'Queuing to ESP32: "{msg.data}"')
             self.write_queue.put(msg.data + '\n')
 
     def serial_writer(self):
