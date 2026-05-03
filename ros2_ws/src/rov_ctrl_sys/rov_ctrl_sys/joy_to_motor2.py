@@ -44,53 +44,92 @@ class JoyToMotor(SubscriberPublisher):
         }
         self.commands = dict()
 
-#         x: left-right
-#         y: up-down
-#         z: forward-back
-        self.declare_parameter('x_mod', 0.75)
-        self.x_mod = self.get_parameter('x_mod').get_parameter_value().double_value
-        self.declare_parameter('pitch_mod', 0.75)
-        self.pitch_mod = self.get_parameter('pitch_mod').get_parameter_value().double_value
-
-        self.declare_parameter('y_mod', 0.75)
-        self.y_mod = self.get_parameter('y_mod').get_parameter_value().double_value
-        self.declare_parameter('yaw_mod', 0.75)
-        self.yaw_mod = self.get_parameter('yaw_mod').get_parameter_value().double_value
-
-        self.declare_parameter('z_mod', 0.75)
-        self.z_mod = self.get_parameter('z_mod').get_parameter_value().double_value
-        self.declare_parameter('roll_mod', 0.75)
-        self.roll_mod = self.get_parameter('roll_mod').get_parameter_value().double_value
-
         self.declare_parameter('allow_rolling', True)
         self.allow_rolling = self.get_parameter('allow_rolling').get_parameter_value().bool_value
 
-        self.motor_params = {}
-        self.declare_parameter('lfl_mod', 1.0)
-        self.declare_parameter('lfr_mod', 1.0)
-        self.declare_parameter('lbl_mod', 1.0)
-        self.declare_parameter('lbr_mod', 1.0)
-        self.declare_parameter('vfl_mod', 1.0)
-        self.declare_parameter('vfr_mod', 1.0)
-        self.declare_parameter('vbl_mod', 1.0)
-        self.declare_parameter('vbr_mod', 1.0)
-        self.motor_params['lfl_mod'] = self.get_parameter('lfl_mod').get_parameter_value().double_value
-        self.motor_params['lfr_mod'] = self.get_parameter('lfr_mod').get_parameter_value().double_value
-        self.motor_params['lbl_mod'] = self.get_parameter('lbl_mod').get_parameter_value().double_value
-        self.motor_params['lbr_mod'] = self.get_parameter('lbr_mod').get_parameter_value().double_value
-        self.motor_params['vfl_mod'] = self.get_parameter('vfl_mod').get_parameter_value().double_value
-        self.motor_params['vfr_mod'] = self.get_parameter('vfr_mod').get_parameter_value().double_value
-        self.motor_params['vbl_mod'] = self.get_parameter('vbl_mod').get_parameter_value().double_value
-        self.motor_params['vbr_mod'] = self.get_parameter('vbr_mod').get_parameter_value().double_value
+        self._params = {}
+        self._params['lateral_cap'] = 0.75
+        self._params['vertical_cap'] = 0.75
+        self._params['neg_mod'] = 1.0
+
+        self._params['lfl_mod_pos'] = 1.0
+        self._params['lfr_mod_pos'] = 1.0
+        self._params['lbl_mod_pos'] = 1.0
+        self._params['lbr_mod_pos'] = 1.0
+        self._params['vfl_mod_pos'] = 1.0
+        self._params['vfr_mod_pos'] = 1.0
+        self._params['vbl_mod_pos'] = 1.0
+        self._params['vbr_mod_pos'] = 1.0
+
+        self._params['lfl_mod_neg'] = 1.0
+        self._params['lfr_mod_neg'] = 1.0
+        self._params['lbl_mod_neg'] = 1.0
+        self._params['lbr_mod_neg'] = 1.0
+        self._params['vfl_mod_neg'] = 1.0
+        self._params['vfr_mod_neg'] = 1.0
+        self._params['vbl_mod_neg'] = 1.0
+        self._params['vbr_mod_neg'] = 1.0
+
+#         x: left-right
+#         y: up-down
+#         z: forward-back
+
+        self._params['x_mod'] = 1.0
+        self._params['x_lfl'] = 1.0
+        self._params['x_lfr'] = 1.0
+        self._params['x_lbl'] = 1.0
+        self._params['x_lbr'] = 1.0
+
+        self._params['z_mod'] = 1.0
+        self._params['z_lfl'] = 1.0
+        self._params['z_lfr'] = 1.0
+        self._params['z_lbl'] = 1.0
+        self._params['z_lbr'] = 1.0
+
+        self._params['yaw_mod'] = 1.0
+        self._params['yaw_lfl'] = 1.0
+        self._params['yaw_lfr'] = 1.0
+        self._params['yaw_lbl'] = 1.0
+        self._params['yaw_lbr'] = 1.0
+
+        self._params['y_mod'] = 1.0
+        self._params['y_vfl'] = 1.0
+        self._params['y_vfr'] = 1.0
+        self._params['y_vbl'] = 1.0
+        self._params['y_vbr'] = 1.0
+
+        self._params['pitch_mod'] = 1.0
+        self._params['pitch_vfl'] = 1.0
+        self._params['pitch_vfr'] = 1.0
+        self._params['pitch_vbl'] = 1.0
+        self._params['pitch_vbr'] = 1.0
+
+        self._params['roll_mod'] = 1.0
+        self._params['roll_vfl'] = 1.0
+        self._params['roll_vfr'] = 1.0
+        self._params['roll_vbl'] = 1.0
+        self._params['roll_vbr'] = 1.0
+
+        for key, val in self._params.items():
+            self.declare_parameter(key, val)
+            self._params[key] = self.get_parameter(key).get_parameter_value().double_value
 
         self.add_on_set_parameters_callback(self._on_params_changed)
 
-        self.get_logger().info(f'Parameters:')
-#         self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
-#         self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
-#         self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
-#         self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
-#         self.get_logger().info(f'  allow_rolling: {self.allow_rolling}')
+        self.get_logger().info(f"Parameters:")
+        self.get_logger().info(f"  lateral_cap: {self._params['lateral_cap']}")
+        self.get_logger().info(f"  vertical_cap: {self._params['vertical_cap']}")
+        self.get_logger().info(f"  x_mod: {self._params['x_mod']}")
+        self.get_logger().info(f"  y_mod: {self._params['y_mod']}")
+        self.get_logger().info(f"  z_mod: {self._params['z_mod']}")
+        self.get_logger().info(f"  pitch_mod: {self._params['pitch_mod']}")
+        self.get_logger().info(f"  yaw_mod: {self._params['yaw_mod']}")
+        self.get_logger().info(f"  roll_mod: {self._params['roll_mod']}")
+        self.get_logger().info(f"  allow_rolling: {self.allow_rolling}")
+
+        for key, val in self._params.items():
+            if val != 1.0:
+                self.get_logger().info(f'  {key}: {val}')
 
     def process_motor(self, key, value):
         value = clamp(value, -1.0, 1.0)
@@ -103,7 +142,7 @@ class JoyToMotor(SubscriberPublisher):
     
     def _on_params_changed(self, params):
         for p in params:
-            if p.name in self.motor_parameters:
+            if p.name in self._params:
                 if p.type_ not in (Parameter.Type.DOUBLE, Parameter.Type.INTEGER):
                     return SetParametersResult(
                         successful=False,
@@ -117,8 +156,9 @@ class JoyToMotor(SubscriberPublisher):
                     )
         
         for p in params:
-            if p.name in self.motor_parameters:
-                self.motor_parameters[p.name] = float(p.value)
+            if p.name in self._params:
+                self._params[p.name] = float(p.value)
+                self.get_logger().info(f'Set {p.name} to: {float(p.value)}')
 
         return SetParametersResult(successful=True)
 
@@ -153,9 +193,9 @@ class JoyToMotor(SubscriberPublisher):
         if ((not self.ltrigger_been_pressed) and msg.axes[2] != 0.0): 
             self.ltrigger_been_pressed = True
 
-        forward = msg.axes[1]
-        strafe = msg.axes[0]
-        turn = msg.axes[3]
+        z = msg.axes[1]
+        x = msg.axes[0]
+        yaw = msg.axes[3]
 
         if self.allow_rolling:
             roll = msg.axes[6]
@@ -165,24 +205,88 @@ class JoyToMotor(SubscriberPublisher):
             pitch = 0.0
 
         if not self.ltrigger_been_pressed and not self.rtrigger_been_pressed:
-            lift = 0.0
+            y = 0.0
         elif not self.ltrigger_been_pressed and self.rtrigger_been_pressed:
-            lift = -1 * ((msg.axes[5] - 1.0) / 2.0)
+            y = -1 * ((msg.axes[5] - 1.0) / 2.0)
         elif self.ltrigger_been_pressed and not self.rtrigger_been_pressed:
-            lift = (msg.axes[2] - 1.0) / 2.0
+            y = (msg.axes[2] - 1.0) / 2.0
         else:
-            lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
-        lift = clamp(lift, -1.0, 1.0)
+            y = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
+        y = clamp(y, -1.0, 1.0)
 
-        lfl = ( (forward - strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lfl_mod']
-        lfr = ( (forward + strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lfr_mod']
-        lbl = ( (forward - strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lbl_mod']
-        lbr = ( (forward + strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lbr_mod']
-    
-        vfl = ( self.vertical_mod * lift + (-roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfl_mod']
-        vfr = ( self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfr_mod']
-        vbl = ( self.vertical_mod * lift + (-roll + pitch) * self.pitch_roll_mod ) * self.motor_parameters['vbl_mod']
-        vbr = ( self.vertical_mod * lift + ( roll + pitch) * self.pitch_roll_mod ) * self.motor_parameters['vbr_mod']
+        z *= self._params['z_mod']
+        x *= self._params['x_mod']
+        y *= self._params['y_mod']
+        yaw *= self._params['yaw_mod']
+        pitch *= self._params['pitch_mod']
+        roll *= self._params['roll_mod']
+
+        lfl = z*self._params['z_lfl'] - x*self._params['x_lfl'] - yaw*self._params['yaw_lfl']
+        lfr = z*self._params['z_lfr'] + x*self._params['x_lfr'] + yaw*self._params['yaw_lfr']
+        lbl = z*self._params['z_lbl'] - x*self._params['x_lbl'] + yaw*self._params['yaw_lbl']
+        lbr = z*self._params['z_lbr'] + x*self._params['x_lbr'] - yaw*self._params['yaw_lbr']
+        vfl = y*self._params['y_vfl'] - roll*self._params['roll_vfl'] - pitch*self._params['pitch_vfl']
+        vfr = y*self._params['y_vfr'] + roll*self._params['roll_vfr'] - pitch*self._params['pitch_vfr']
+        vbl = y*self._params['y_vbl'] - roll*self._params['roll_vbl'] + pitch*self._params['pitch_vbl']
+        vbr = y*self._params['y_vbr'] + roll*self._params['roll_vbr'] + pitch*self._params['pitch_vbr']
+
+        lfl = clamp(lfl, -1.0, 1.0)
+        lfr = clamp(lfr, -1.0, 1.0)
+        lbl = clamp(lbl, -1.0, 1.0)
+        lbr = clamp(lbr, -1.0, 1.0)
+        vfl = clamp(vfl, -1.0, 1.0)
+        vfr = clamp(vfr, -1.0, 1.0)
+        vbl = clamp(vbl, -1.0, 1.0)
+        vbr = clamp(vbr, -1.0, 1.0)
+
+        if lfl < 0:
+          lfl *= self._params['lfl_mod_neg']
+        else:
+          lfl *= self._params['lfl_mod_pos']
+
+        if lfr < 0:
+          lfr *= self._params['lfr_mod_neg']
+        else:
+          lfr *= self._params['lfr_mod_pos']
+
+        if lbl < 0:
+          lbl *= self._params['lbl_mod_neg']
+        else:
+          lbl *= self._params['lbl_mod_pos']
+
+        if lbr < 0:
+          lbr *= self._params['lbr_mod_neg']
+        else:
+          lbr *= self._params['lbr_mod_pos']
+
+        if vfl < 0:
+          vfl *= self._params['vfl_mod_neg']
+        else:
+          vfl *= self._params['vfl_mod_pos']
+
+        if vfr < 0:
+          vfr *= self._params['vfr_mod_neg']
+        else:
+          vfr *= self._params['vfr_mod_pos']
+
+        if vbl < 0:
+          vbl *= self._params['vbl_mod_neg']
+        else:
+          vbl *= self._params['vbl_mod_pos']
+
+        if vbr < 0:
+          vbr *= self._params['vbr_mod_neg']
+        else:
+          vbr *= self._params['vbr_mod_pos']
+
+        lfl = clamp(lfl, -self._params['lateral_cap'], self._params['lateral_cap'])
+        lfr = clamp(lfr, -self._params['lateral_cap'], self._params['lateral_cap'])
+        lbl = clamp(lbl, -self._params['lateral_cap'], self._params['lateral_cap'])
+        lbr = clamp(lbr, -self._params['lateral_cap'], self._params['lateral_cap'])
+        vfl = clamp(vfl, -self._params['vertical_cap'], self._params['vertical_cap'])
+        vfr = clamp(vfr, -self._params['vertical_cap'], self._params['vertical_cap'])
+        vbl = clamp(vbl, -self._params['vertical_cap'], self._params['vertical_cap'])
+        vbr = clamp(vbr, -self._params['vertical_cap'], self._params['vertical_cap'])
 
         self.process_motor('lfl', lfl)
         self.process_motor('lfr', lfr)
