@@ -44,24 +44,28 @@ class JoyToMotor(SubscriberPublisher):
         }
         self.commands = dict()
 
-        lateral_mod_descriptor = ParameterDescriptor(description='The modifier for the lateral movement of the ROV')
-        yaw_mod_descriptor = ParameterDescriptor(description='The modifier for the yaw movement of the ROV')
-        vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
-        pitch_roll_mod_descriptor = ParameterDescriptor(description='The modifier for the pitch and roll of the ROV')
+#         x: left-right
+#         y: up-down
+#         z: forward-back
+        self.declare_parameter('x_mod', 0.75)
+        self.x_mod = self.get_parameter('x_mod').get_parameter_value().double_value
+        self.declare_parameter('pitch_mod', 0.75)
+        self.pitch_mod = self.get_parameter('pitch_mod').get_parameter_value().double_value
 
-        self.declare_parameter('lateral_mod', 0.75, lateral_mod_descriptor)
-        self.lateral_mod = self.get_parameter('lateral_mod').get_parameter_value().double_value
-        self.declare_parameter('yaw_mod', 0.75, yaw_mod_descriptor)
+        self.declare_parameter('y_mod', 0.75)
+        self.y_mod = self.get_parameter('y_mod').get_parameter_value().double_value
+        self.declare_parameter('yaw_mod', 0.75)
         self.yaw_mod = self.get_parameter('yaw_mod').get_parameter_value().double_value
-        self.declare_parameter('vertical_mod', 0.75, vertical_mod_descriptor)
-        self.vertical_mod = self.get_parameter('vertical_mod').get_parameter_value().double_value
-        self.declare_parameter('pitch_roll_mod', 0.75, pitch_roll_mod_descriptor)
-        self.pitch_roll_mod = self.get_parameter('pitch_roll_mod').get_parameter_value().double_value
+
+        self.declare_parameter('z_mod', 0.75)
+        self.z_mod = self.get_parameter('z_mod').get_parameter_value().double_value
+        self.declare_parameter('roll_mod', 0.75)
+        self.roll_mod = self.get_parameter('roll_mod').get_parameter_value().double_value
 
         self.declare_parameter('allow_rolling', True)
         self.allow_rolling = self.get_parameter('allow_rolling').get_parameter_value().bool_value
 
-        self.motor_parameters = {}
+        self.motor_params = {}
         self.declare_parameter('lfl_mod', 1.0)
         self.declare_parameter('lfr_mod', 1.0)
         self.declare_parameter('lbl_mod', 1.0)
@@ -70,31 +74,23 @@ class JoyToMotor(SubscriberPublisher):
         self.declare_parameter('vfr_mod', 1.0)
         self.declare_parameter('vbl_mod', 1.0)
         self.declare_parameter('vbr_mod', 1.0)
-        self.motor_parameters['lfl_mod'] = 1.0
-        self.motor_parameters['lfr_mod'] = 1.0
-        self.motor_parameters['lbl_mod'] = 1.0
-        self.motor_parameters['lbr_mod'] = 1.0
-        self.motor_parameters['vfl_mod'] = 1.0
-        self.motor_parameters['vfr_mod'] = 1.0
-        self.motor_parameters['vbl_mod'] = 1.0
-        self.motor_parameters['vbr_mod'] = 1.0
-        self.lfl_mod = self.get_parameter('lfl_mod').get_parameter_value().double_value
-        self.lfr_mod = self.get_parameter('lfr_mod').get_parameter_value().double_value
-        self.lbl_mod = self.get_parameter('lbl_mod').get_parameter_value().double_value
-        self.lbr_mod = self.get_parameter('lbr_mod').get_parameter_value().double_value
-        self.vfl_mod = self.get_parameter('vfl_mod').get_parameter_value().double_value
-        self.vfr_mod = self.get_parameter('vfr_mod').get_parameter_value().double_value
-        self.vbl_mod = self.get_parameter('vbl_mod').get_parameter_value().double_value
-        self.vbr_mod = self.get_parameter('vbr_mod').get_parameter_value().double_value
+        self.motor_params['lfl_mod'] = self.get_parameter('lfl_mod').get_parameter_value().double_value
+        self.motor_params['lfr_mod'] = self.get_parameter('lfr_mod').get_parameter_value().double_value
+        self.motor_params['lbl_mod'] = self.get_parameter('lbl_mod').get_parameter_value().double_value
+        self.motor_params['lbr_mod'] = self.get_parameter('lbr_mod').get_parameter_value().double_value
+        self.motor_params['vfl_mod'] = self.get_parameter('vfl_mod').get_parameter_value().double_value
+        self.motor_params['vfr_mod'] = self.get_parameter('vfr_mod').get_parameter_value().double_value
+        self.motor_params['vbl_mod'] = self.get_parameter('vbl_mod').get_parameter_value().double_value
+        self.motor_params['vbr_mod'] = self.get_parameter('vbr_mod').get_parameter_value().double_value
 
         self.add_on_set_parameters_callback(self._on_params_changed)
 
         self.get_logger().info(f'Parameters:')
-        self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
-        self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
-        self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
-        self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
-        self.get_logger().info(f'  allow_rolling: {self.allow_rolling}')
+#         self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
+#         self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
+#         self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
+#         self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
+#         self.get_logger().info(f'  allow_rolling: {self.allow_rolling}')
 
     def process_motor(self, key, value):
         value = clamp(value, -1.0, 1.0)
