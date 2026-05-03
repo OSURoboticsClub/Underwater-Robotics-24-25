@@ -3,15 +3,18 @@ from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
 from launch_ros.actions import Node
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
+from launch.conditions import UnlessCondition, IfCondition
 
 def generate_launch_description():
 
     return LaunchDescription([
-        DeclareLaunchArgument('lateral_mod', default_value='0.75'),
-        DeclareLaunchArgument('yaw_mod', default_value='0.75'),
-        DeclareLaunchArgument('vertical_mod', default_value='0.75'),
-        DeclareLaunchArgument('pitch_roll_mod', default_value='0.75'),
         DeclareLaunchArgument('allow_rolling', default_value='True'),
+        DeclareLaunchArgument('launch_parameterized', default_value='False'),
+
+        DeclareLaunchArgument('lateral_mod', default_value='0.75'),
+        DeclareLaunchArgument('vertical_mod', default_value='0.75'),
+        DeclareLaunchArgument('turn_mod', default_value='0.75'),
+        DeclareLaunchArgument('pitch_roll_mod', default_value='0.75'),
         Node(
             package='rov_ctrl_sys',
             executable='joy_to_motor',
@@ -19,11 +22,28 @@ def generate_launch_description():
             output='log',
             parameters=[{
                 'lateral_mod': LaunchConfiguration('lateral_mod'),
-                'yaw_mod': LaunchConfiguration('yaw_mod'),
+                'turn_mod': LaunchConfiguration('turn_mod'),
                 'vertical_mod': LaunchConfiguration('vertical_mod'),
                 'pitch_roll_mod': LaunchConfiguration('pitch_roll_mod'),
                 'allow_rolling': LaunchConfiguration('allow_rolling'),
             }],
+            condition=UnlessCondition(LaunchConfiguration('launch_parameterized')),
+#             ros_arguments=['--log-level', 'debug'],
+        ),
+
+        DeclareLaunchArgument('lateral_cap', default_value='0.75'),
+        DeclareLaunchArgument('vertical_cap', default_value='0.75'),
+        Node(
+            package='rov_ctrl_sys',
+            executable='joy_to_motor2',
+            name='joy_to_motor',
+            output='log',
+            parameters=[{
+                'lateral_cap': LaunchConfiguration('lateral_cap'),
+                'vertical_cap': LaunchConfiguration('vertical_cap'),
+                'allow_rolling': LaunchConfiguration('allow_rolling'),
+            }],
+            condition=IfCondition(LaunchConfiguration('launch_parameterized')),
 #             ros_arguments=['--log-level', 'debug'],
         ),
         Node(

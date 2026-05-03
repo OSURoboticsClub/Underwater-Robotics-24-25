@@ -240,42 +240,42 @@ class JoyToMotor(SubscriberPublisher):
         vbr = clamp(vbr, -1.0, 1.0)
 
         if lfl < 0:
-          lfl *= self._params['lfl_mod_neg']
+          lfl *= self._params['lfl_mod_neg'] * self._params['neg_mod']
         else:
           lfl *= self._params['lfl_mod_pos']
 
         if lfr < 0:
-          lfr *= self._params['lfr_mod_neg']
+          lfr *= self._params['lfr_mod_neg'] * self._params['neg_mod']
         else:
           lfr *= self._params['lfr_mod_pos']
 
         if lbl < 0:
-          lbl *= self._params['lbl_mod_neg']
+          lbl *= self._params['lbl_mod_neg'] * self._params['neg_mod']
         else:
           lbl *= self._params['lbl_mod_pos']
 
         if lbr < 0:
-          lbr *= self._params['lbr_mod_neg']
+          lbr *= self._params['lbr_mod_neg'] * self._params['neg_mod']
         else:
           lbr *= self._params['lbr_mod_pos']
 
         if vfl < 0:
-          vfl *= self._params['vfl_mod_neg']
+          vfl *= self._params['vfl_mod_neg'] * self._params['neg_mod']
         else:
           vfl *= self._params['vfl_mod_pos']
 
         if vfr < 0:
-          vfr *= self._params['vfr_mod_neg']
+          vfr *= self._params['vfr_mod_neg'] * self._params['neg_mod']
         else:
           vfr *= self._params['vfr_mod_pos']
 
         if vbl < 0:
-          vbl *= self._params['vbl_mod_neg']
+          vbl *= self._params['vbl_mod_neg'] * self._params['neg_mod']
         else:
           vbl *= self._params['vbl_mod_pos']
 
         if vbr < 0:
-          vbr *= self._params['vbr_mod_neg']
+          vbr *= self._params['vbr_mod_neg'] * self._params['neg_mod']
         else:
           vbr *= self._params['vbr_mod_pos']
 

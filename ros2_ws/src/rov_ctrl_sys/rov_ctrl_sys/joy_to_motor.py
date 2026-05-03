@@ -45,14 +45,14 @@ class JoyToMotor(SubscriberPublisher):
         self.commands = dict()
 
         lateral_mod_descriptor = ParameterDescriptor(description='The modifier for the lateral movement of the ROV')
-        yaw_mod_descriptor = ParameterDescriptor(description='The modifier for the yaw movement of the ROV')
+        turn_mod_descriptor = ParameterDescriptor(description='The modifier for the yaw movement of the ROV')
         vertical_mod_descriptor = ParameterDescriptor(description='The modifier for the vertical movement of the ROV')
         pitch_roll_mod_descriptor = ParameterDescriptor(description='The modifier for the pitch and roll of the ROV')
 
         self.declare_parameter('lateral_mod', 0.75, lateral_mod_descriptor)
         self.lateral_mod = self.get_parameter('lateral_mod').get_parameter_value().double_value
-        self.declare_parameter('yaw_mod', 0.75, yaw_mod_descriptor)
-        self.yaw_mod = self.get_parameter('yaw_mod').get_parameter_value().double_value
+        self.declare_parameter('turn_mod', 0.75, turn_mod_descriptor)
+        self.turn_mod = self.get_parameter('turn_mod').get_parameter_value().double_value
         self.declare_parameter('vertical_mod', 0.75, vertical_mod_descriptor)
         self.vertical_mod = self.get_parameter('vertical_mod').get_parameter_value().double_value
         self.declare_parameter('pitch_roll_mod', 0.75, pitch_roll_mod_descriptor)
@@ -91,7 +91,7 @@ class JoyToMotor(SubscriberPublisher):
 
         self.get_logger().info(f'Parameters:')
         self.get_logger().info(f'  lateral_mod: {self.lateral_mod}')
-        self.get_logger().info(f'  yaw_mod: {self.yaw_mod}')
+        self.get_logger().info(f'  turn_mod: {self.turn_mod}')
         self.get_logger().info(f'  vertical_mod: {self.vertical_mod}')
         self.get_logger().info(f'  pitch_roll_mod: {self.pitch_roll_mod}')
         self.get_logger().info(f'  allow_rolling: {self.allow_rolling}')
@@ -178,10 +178,10 @@ class JoyToMotor(SubscriberPublisher):
             lift = ((msg.axes[2] - 1.0) / 2.0) - ((msg.axes[5] - 1.0) / 2.0)
         lift = clamp(lift, -1.0, 1.0)
 
-        lfl = ( (forward - strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lfl_mod']
-        lfr = ( (forward + strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lfr_mod']
-        lbl = ( (forward - strafe) * self.lateral_mod + turn * self.yaw_mod ) * self.motor_parameters['lbl_mod']
-        lbr = ( (forward + strafe) * self.lateral_mod - turn * self.yaw_mod ) * self.motor_parameters['lbr_mod']
+        lfl = ( (forward - strafe) * self.lateral_mod - turn * self.turn_mod ) * self.motor_parameters['lfl_mod']
+        lfr = ( (forward + strafe) * self.lateral_mod + turn * self.turn_mod ) * self.motor_parameters['lfr_mod']
+        lbl = ( (forward - strafe) * self.lateral_mod + turn * self.turn_mod ) * self.motor_parameters['lbl_mod']
+        lbr = ( (forward + strafe) * self.lateral_mod - turn * self.turn_mod ) * self.motor_parameters['lbr_mod']
     
         vfl = ( self.vertical_mod * lift + (-roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfl_mod']
         vfr = ( self.vertical_mod * lift + ( roll - pitch) * self.pitch_roll_mod ) * self.motor_parameters['vfr_mod']

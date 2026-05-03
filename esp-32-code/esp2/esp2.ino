@@ -45,8 +45,8 @@ struct Motor {
 Motor motors[] = {
   Motor(Servo(), "manip_rotate",  25), // rotates the claw
   // Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
-  Motor(Servo(), "camera_x",  4, 1500, 1200, 1800), // change default
-  Motor(Servo(), "camera_y", 16, 1500, 1100, 1900) // change defaults
+  Motor(Servo(), "camera_x",  4, 1500, 1000, 2000), // change default
+  Motor(Servo(), "camera_y", 16, 1500, 1000, 2000) // change defaults
 //   Motor(Servo(), "main_mover", 25), // rotates the claw
 //   Motor(Servo(), "left_mover", -1), // moves the syringe thingy
 };
