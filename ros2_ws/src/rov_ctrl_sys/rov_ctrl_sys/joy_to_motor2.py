@@ -42,6 +42,9 @@ class JoyToMotor(SubscriberPublisher):
             'vbl': 0.0,
             'vbr': 0.0
         }
+
+        self.lateral = {'lfl', 'lfr', 'lbl', 'lbr'}
+        self.vertical = {'vfl', 'vfr', 'vbl', 'vbr'}
         self.commands = dict()
 
         self.declare_parameter('allow_rolling', True)
@@ -299,8 +302,16 @@ class JoyToMotor(SubscriberPublisher):
 
         if self.commands:
             new_msg = String()
-            new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
+            for k,v in self.commands.items():
+                new_msg.data += f'{k}={v},'
+            new_msg.data = new_msg.data[:len(new_msg.data)-1]
+#             new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
             self.get_logger().info(f"motor_commands: {new_msg.data}")
+
+            if self.vertical_timer:
+                pass
+            if self.leteral_timer:
+                pass
             return new_msg
         else:
             return None
