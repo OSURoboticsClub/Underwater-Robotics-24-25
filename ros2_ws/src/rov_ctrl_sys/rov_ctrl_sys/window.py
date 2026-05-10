@@ -86,6 +86,8 @@ class Window(Node):
         self.front_idx = 0
         self.new_frame = False
         self.img_lock = threading.Lock()
+        self.img_dir = '/home/david/Underwater-Robotics-24-25/crab_detect/inputs/'
+        self.img_num = 1
 
         self.held_keys = set()
         self.keymap = {
@@ -145,6 +147,7 @@ class Window(Node):
 
     def timer_callback(self):
         key_changed = False
+        capture_frame = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -153,6 +156,9 @@ class Window(Node):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LSHIFT:
                     self.debug = not self.debug
+                    continue
+                elif event.key == pygame.K_RETURN:
+                    capture_frame = True
                     continue
 
                 name = self.keymap.get(event.key)
@@ -185,6 +191,11 @@ class Window(Node):
             if new_frame:
                 img_surface = self.img_surfaces[self.front_idx]
                 self.new_frame = False
+            if capture_frame:
+                filename = self.img_dir + 'crab' + str(self.img_num) + '.jpeg'
+                pygame.image.save(self.img_surfaces[self.front_idx], filename)
+                self.img_num += 1
+                self.get_logger().info(f'Saving image to: {filename}')
 
         if new_frame:
             updated_rects.append(self.screen.blit(img_surface, (100,100)))
