@@ -6,6 +6,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch.conditions import UnlessCondition, IfCondition
 
 def generate_launch_description():
+    params_dir = PathJoinSubstitution([FindPackageShare('rov_ctrl_sys'), 'config'])
 
     return LaunchDescription([
         DeclareLaunchArgument('allow_rolling', default_value='True'),
@@ -45,6 +46,7 @@ def generate_launch_description():
             }],
             condition=IfCondition(LaunchConfiguration('launch_parameterized')),
 #             ros_arguments=['--log-level', 'debug'],
+            ros_arguments=['--params-file', PathJoinSubstitution([params_dir, 'motors.yaml'])],
         ),
         Node(
             package='rov_ctrl_sys',
