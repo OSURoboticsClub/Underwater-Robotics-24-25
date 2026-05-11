@@ -29,12 +29,10 @@ setup(
     entry_points={
         'console_scripts': [
             'joy_to_motor = rov_ctrl_sys.joy_to_motor:main',
-            'joy_to_motor2 = rov_ctrl_sys.joy_to_motor2:main',
             'joy_to_servo = rov_ctrl_sys.joy_to_servo:main',
             'keyboard_to_servo = rov_ctrl_sys.keyboard_to_servo:main',
             'motor_controller = rov_ctrl_sys.motor_controller:main',
             'window = rov_ctrl_sys.window:main',
-            'calibrate_motors = rov_ctrl_sys.calibrate_motors:main',
         ],
     },
 )

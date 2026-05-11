@@ -8,6 +8,7 @@ from std_msgs.msg import String
 import pygame
 import threading
 import json
+import pathlib
 
 class TextPrint:
     def __init__(self):
@@ -86,7 +87,7 @@ class Window(Node):
         self.front_idx = 0
         self.new_frame = False
         self.img_lock = threading.Lock()
-        self.img_dir = '/home/david/Underwater-Robotics-24-25/crab_detect/inputs/'
+        self.img_dir = str(pathlib.Path.home()) + '/Underwater-Robotics-24-25/crab_detect/inputs/'
         self.img_num = 1
 
         self.held_keys = set()
