@@ -35,7 +35,7 @@ def generate_launch_description():
         name='display',
         output='log',
         remappings=[
-            ('image_raw','image_uncompressed'),
+            ('image_raw','image_processed'),
         ],
 #         ros_arguments=['--log-level', 'debug'],
     )
@@ -61,6 +61,15 @@ def generate_launch_description():
                 'compressed', 'raw', 
             ],
             output='log'
+        ),
+        Node(
+            package='rov_ctrl_sys',
+            executable='crab_detect',
+            name='crab_detect',
+            remappings=[
+                ('image_raw', 'image_uncompressed'),
+            ],
+            output='log',
         ),
         RegisterEventHandler(
             OnProcessExit(

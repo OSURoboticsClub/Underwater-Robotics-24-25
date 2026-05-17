@@ -33,6 +33,7 @@ setup(
             'joy_to_servo = rov_ctrl_sys.joy_to_servo:main',
             'keyboard_to_servo = rov_ctrl_sys.keyboard_to_servo:main',
             'motor_controller = rov_ctrl_sys.motor_controller:main',
+            'crab_detect = rov_ctrl_sys.crab_detect:main',
             'window = rov_ctrl_sys.window:main',
         ],
     },

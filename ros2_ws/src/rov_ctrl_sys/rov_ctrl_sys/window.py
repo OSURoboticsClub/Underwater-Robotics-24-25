@@ -87,7 +87,7 @@ class Window(Node):
         self.front_idx = 0
         self.new_frame = False
         self.img_lock = threading.Lock()
-        self.img_dir = str(pathlib.Path.home()) + '/Underwater-Robotics-24-25/crab_detect/inputs/'
+        self.img_dir = str(pathlib.Path.home()) + '/Underwater-Robotics-24-25/crab_detect/rov_photos'
         self.img_num = 1
 
         self.held_keys = set()
@@ -102,6 +102,7 @@ class Window(Node):
                 pygame.K_e: 'E', # external lights
                 pygame.K_x: 'X',
                 pygame.K_y: 'Y',
+                pygame.K_p: 'P', # crab processing
 #                 pygame.K_w: 'W',
 #                 pygame.K_a: 'A',
 #                 pygame.K_s: 'S',
