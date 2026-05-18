@@ -55,6 +55,7 @@ const int num_motors = 3;
 const int manip = 13;
 const int dome_lights = 17;
 const int ext_lights = 26;
+const int rotate_relay = 18;
 
 /*
    Possible input keys:
@@ -87,14 +88,16 @@ void setup() {
   pinMode(manip, OUTPUT);
   pinMode(dome_lights, OUTPUT);
   pinMode(ext_lights, OUTPUT);
-  pinMode(18, OUTPUT);
-  pinMode(19, OUTPUT);
+//   pinMode(18, OUTPUT);
+//   pinMode(19, OUTPUT);
+  pinMode(rotate_relay, OUTPUT);
 
   digitalWrite(manip, LOW);
   digitalWrite(dome_lights, LOW);
   digitalWrite(ext_lights, LOW);
-  digitalWrite(18, HIGH);
-  digitalWrite(19, HIGH);
+//   digitalWrite(18, HIGH);
+//   digitalWrite(19, HIGH);
+  digitalWrite(rotate_relay, LOW);
 
 
 }
@@ -154,6 +157,13 @@ void process_commands(String &input) {
     } else if (target == "manip_rotate") {
       int i = 0;
       int throttle = value.toInt();
+
+      if (throttle == 1500) {
+        digitalWrite(rotate_relay, LOW);
+      } else {
+        digitalWrite(rotate_relay, HIGH);
+      }
+
       if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
 //        Serial.println("Setting manipulator to new value");
         motors[i].pwm = throttle;
