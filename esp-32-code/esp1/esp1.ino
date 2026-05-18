@@ -140,6 +140,8 @@ void process_commands(String &input) {
   }
 }
 
+const int INCREMENT = 10;
+
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
 long current_time = millis();
@@ -167,9 +169,35 @@ void loop() {
   }
     
   for (int i = 0; i < num_motors; i++) {
-    if ((motors[i].pin != -1) && (motors[i].written_pwm != (motors[i].pwm + motors[i].offset))) {
-      motors[i].servo.writeMicroseconds(motors[i].pwm + motors[i].offset);
-      motors[i].written_pwm = motors[i].pwm + motors[i].offset;
+    int target = motors[i].pwm + motors[i].offset - 1500;
+    int current = motors[i].written_pwm - 1500;
+    int diff = target - current;
+    if (motors[i].pin != -1) {
+//       if (abs(diff) >= INCREMENT) {
+//         if (diff > 0) {
+//           motors[i].servo.writeMicroseconds(current + INCREMENT);
+//           motors[i].written_pwm = current + INCREMENT;
+//         } else {
+//           motors[i].servo.writeMicroseconds(current - INCREMENT);
+//           motors[i].written_pwm = current - INCREMENT;
+//         }
+//       } else if (abs(diff) > 0) {
+//         motors[i].servo.writeMicroseconds(target);
+//         motors[i].written_pwm = target;
+//       }
+      if ( (abs(diff) > INCREMENT) && 
+          ( (abs(current) > abs(target)) || (abs(diff) > (abs(target) - abs(current))) ) ) {
+        if (diff > 0) {
+          motors[i].servo.writeMicroseconds(current + INCREMENT + 1500);
+          motors[i].written_pwm = current + INCREMENT + 1500;
+        } else {
+          motors[i].servo.writeMicroseconds(current - INCREMENT + 1500);
+          motors[i].written_pwm = current - INCREMENT + 1500;
+        }
+      } else if (abs(diff) > 0) {
+        motors[i].servo.writeMicroseconds(target + 1500);
+        motors[i].written_pwm = target + 1500;
+      }
     }
   }
 
@@ -179,7 +207,9 @@ void loop() {
     // Serial.println(output);
 //     Serial.println("Hello, World!");
     current_time = millis();
-//     Serial.println(analogRead(pressure_sensor));
-    Serial.println(motors[3].written_pwm);
+    Serial.println(analogRead(pressure_sensor));
+//     Serial.print(motors[7].pwm);
+//     Serial.print(" , ");
+//     Serial.println(motors[7].written_pwm);
   }
 }

@@ -326,18 +326,7 @@ class JoyToMotor(SubscriberPublisher):
 
         if self.commands:
             new_msg = String()
-#             new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
-#             lateral_zero = True
-#             vertical_zero = True
-            for k,v in self.commands.items():
-#                 if k in self.lateral:
-#                     if v != 0.0:
-#                         lateral_zero = False
-#                 elif k in self.vertical:
-#                     if v != 0.0:
-#                         vertical_zero = False
-                new_msg.data += f'{k}={v},'
-            new_msg.data = new_msg.data[:len(new_msg.data)-1]
+            new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
             self.get_logger().info(f"motor_commands: {new_msg.data}")
 
             lateral_commands = {k: self.commands[k] for k in self.commands if k in self.lateral}
