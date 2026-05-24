@@ -24,9 +24,6 @@ def generate_launch_description():
             ),
             IncludeLaunchDescription(
                 PathJoinSubstitution([launch_dir, 'camera.launch.py']),
-                launch_arguments={
-                        'video_device': '/dev/main_camera',
-                }.items()
             ),
         ]),
     ])

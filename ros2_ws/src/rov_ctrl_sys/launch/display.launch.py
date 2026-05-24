@@ -29,11 +29,18 @@ from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    params_dir = PathJoinSubstitution([FindPackageShare('rov_ctrl_sys'), 'config'])
+    fullscreen = LaunchConfiguration('fullscreen')
+
     display_node = Node(
         package='rov_ctrl_sys',
         executable='window',
         name='display',
         output='log',
+        parameters=[
+            {'fullscreen': LaunchConfiguration('fullscreen')},
+            PathJoinSubstitution([params_dir, 'camera_shared.yaml']),
+        ],
         remappings=[
             ('image_raw','image_processed'),
         ],
@@ -41,6 +48,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument('fullscreen', default_value=fullscreen),
         display_node,
         Node(
             package='rov_ctrl_sys',

@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.signals import SignalHandlerOptions
 from rov_ctrl_sys.subscriber_general import Subscriber
+from rov_ctrl_sys.text_print import TextPrint
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
@@ -10,84 +11,40 @@ import threading
 import json
 import pathlib
 
-class TextPrint:
-    def __init__(self):
-        self.reset()
-        self._font = pygame.font.SysFont('DejaVu Sans Mono', 20)
-
-    def tprintln(self, screen, text):
-        self.tprint(screen, text)
-        self._y += self._line_height
-        self._x_offset = 0
-        return self
-
-    def tprint(self, screen, text):
-        text_bitmap = self._font.render(text, True, self.color)
-        screen.blit(text_bitmap, (self._x + self._x_offset, self._y))
-        self._x_offset += text_bitmap.get_width()
-        return self
-
-    def reset(self):
-        self._x = 10
-        self._y = 10
-        self._line_height = 22
-        self._x_offset = 0
-        self.color = (0,0,0)
-        return self
-
-    def indent(self):
-        self._x += 10
-        return self
-    
-    def unindent(self):
-        self._x -= 10
-        return self
-    
-    def get_x(self):
-        return self._x
-    
-    def get_y(self):
-        return self._y
-
-    def set_x(self, new_x):
-        self._x = new_x
-        return self
-
-    def set_y(self, new_y):
-        self._y = new_y
-        return self
-
-    def set_color(self, new_color):
-        self.color = new_color
-        return self
-
 class Window(Node):
 
     def __init__(self):
         super().__init__('window')
 
+        self.declare_parameter('fullscreen', True)
+        self.fullscreen = self.get_parameter('fullscreen').value
+        self.declare_parameter('image_width', 640)
+        self.image_width = self.get_parameter('image_width').value
+        self.declare_parameter('image_height', 480)
+        self.image_height = self.get_parameter('image_height').value
+
         pygame.init()
         self.running = True
-        self.screen = pygame.display.set_mode((1080,720))
+#         self.screen = pygame.display.set_mode((1080,720), flags=pygame.SCALED)
+        self.screen = pygame.display.set_mode((640,360), flags=pygame.SCALED)
+        if self.fullscreen:
+            pygame.display.toggle_fullscreen()
+
         pygame.display.set_caption("ROV Control Window")
         pygame.mouse.set_visible(True)
         self.text = TextPrint()
-        self.screen.fill(pygame.Color(255, 255, 255))
-        self.text.indent().set_color((255,0,0))
-        self.text.tprintln(self.screen, "Press both ESC and delete to exit")
-        self.text.set_color((0,0,0)).reset()
-        pygame.display.flip()
+        self.reset_screen()
 
 #        self.clock = pygame.time.Clock()
         self.debug = False
-        self.img_size = (640,480) # will be ros parameterized later
+        self.img_size = (self.image_width, self.image_height)
         self.buffer_size = self.img_size[0] * self.img_size[1] * 3
         self.buffers = [bytearray(self.buffer_size),bytearray(self.buffer_size)]
         self.img_surfaces = [pygame.image.frombuffer(self.buffers[0], self.img_size, 'RGB'), pygame.image.frombuffer(self.buffers[1], self.img_size, 'RGB')]
         self.front_idx = 0
         self.new_frame = False
         self.img_lock = threading.Lock()
-        self.img_dir = str(pathlib.Path.home()) + '/Underwater-Robotics-24-25/crab_detect/rov_photos'
+        self.img_dir = str(pathlib.Path.home()) + '/Underwater-Robotics-24-25/crab_detect/rov_photos/'
         self.img_num = 1
 
         self.held_keys = set()
@@ -103,6 +60,7 @@ class Window(Node):
                 pygame.K_x: 'X',
                 pygame.K_y: 'Y',
                 pygame.K_p: 'P', # crab processing
+                pygame.K_f: 'F', # fullscreen
 #                 pygame.K_w: 'W',
 #                 pygame.K_a: 'A',
 #                 pygame.K_s: 'S',
@@ -118,6 +76,8 @@ class Window(Node):
                 }
         self.last_msg = None
 
+        self.f_pressed = False
+
 
         self.pub = self.create_publisher(String, 'key_states', 10)
         timer_delay = 1.0/30.0 # seconds
@@ -127,6 +87,13 @@ class Window(Node):
                 self.image_callback,
                 1)
         self.sub_img, self.pub, self.sub_img # prevent unused variable warnings
+    
+    def reset_screen(self):
+        self.screen.fill(pygame.Color(255, 255, 255))
+        self.text.indent().set_color((255,0,0))
+#         self.text.tprintln(self.screen, "Press both ESC and delete to exit")
+        self.text.set_color((0,0,0)).reset()
+        pygame.display.flip()
 
     def image_callback(self, msg):
         if (msg.encoding == "rgb8") and (self.img_size == (msg.width,msg.height)) and (len(msg.data) == msg.step * msg.height):
@@ -200,7 +167,20 @@ class Window(Node):
                 self.get_logger().info(f'Saving image to: {filename}')
 
         if new_frame:
-            updated_rects.append(self.screen.blit(img_surface, (100,100)))
+            scaled = pygame.transform.scale(img_surface, (480, 360))
+            updated_rects.append(self.screen.blit(scaled, ( 80,000)))
+#             updated_rects.append(self.screen.blit(img_surface, (100,100)))
+
+        if not self.f_pressed and 'F' in self.held_keys:
+            self.fullscreen = not self.fullscreen
+            if not self.fullscreen:
+                self.screen = pygame.display.set_mode((640,360), flags=pygame.SCALED)
+            else:
+                pygame.display.toggle_fullscreen()
+            self.reset_screen()
+            self.f_pressed = True
+        elif self.f_pressed and 'F' not in self.held_keys:
+            self.f_pressed = False
 
         pygame.display.update(updated_rects)
 

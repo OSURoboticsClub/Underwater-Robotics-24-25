@@ -25,8 +25,8 @@ class MotorController(Subscriber):
         self.declare_parameter('port', '/dev/ttyUSB0', port_descriptor)
         self.declare_parameter('baud', 115200, port_descriptor)
 
-        self.port = self.get_parameter('port').get_parameter_value().string_value
-        self.baud = self.get_parameter('baud').get_parameter_value().integer_value
+        self.port = self.get_parameter('port').value
+        self.baud = self.get_parameter('baud').value
 
         try:
             self.ser = serial.Serial(self.port, self.baud, timeout=0)

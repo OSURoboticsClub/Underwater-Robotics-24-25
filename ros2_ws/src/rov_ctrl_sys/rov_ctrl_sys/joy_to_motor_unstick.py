@@ -52,7 +52,7 @@ class JoyToMotor(SubscriberPublisher):
         self.timer_delay = 1.0
 
         self.declare_parameter('allow_rolling', True)
-        self.allow_rolling = self.get_parameter('allow_rolling').get_parameter_value().bool_value
+        self.allow_rolling = self.get_parameter('allow_rolling').value
 
         self._params = {}
         self._params['lateral_cap'] = 0.75
@@ -119,7 +119,7 @@ class JoyToMotor(SubscriberPublisher):
 
         for key, val in self._params.items():
             self.declare_parameter(key, val)
-            self._params[key] = self.get_parameter(key).get_parameter_value().double_value
+            self._params[key] = self.get_parameter(key).value
 
         self.add_on_set_parameters_callback(self._on_params_changed)
 
