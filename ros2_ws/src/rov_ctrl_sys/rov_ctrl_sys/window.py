@@ -10,6 +10,7 @@ import pygame
 import threading
 import json
 import pathlib
+import math
 
 class Window(Node):
 
@@ -38,6 +39,9 @@ class Window(Node):
 #        self.clock = pygame.time.Clock()
         self.debug = False
         self.img_size = (self.image_width, self.image_height)
+        gcd = math.gcd(self.image_width, self.image_height)
+        self.aspect_ratio = (self.image_width / gcd, self.image_height / gcd)
+
         self.buffer_size = self.img_size[0] * self.img_size[1] * 3
         self.buffers = [bytearray(self.buffer_size),bytearray(self.buffer_size)]
         self.img_surfaces = [pygame.image.frombuffer(self.buffers[0], self.img_size, 'RGB'), pygame.image.frombuffer(self.buffers[1], self.img_size, 'RGB')]
@@ -167,7 +171,7 @@ class Window(Node):
                 self.get_logger().info(f'Saving image to: {filename}')
 
         if new_frame:
-            scaled = pygame.transform.scale(img_surface, (480, 360))
+            scaled = pygame.transform.scale(img_surface, (480,  (480 / self.aspect_ratio[0]) * self.aspect_ratio[1]))
             updated_rects.append(self.screen.blit(scaled, ( 80,000)))
 #             updated_rects.append(self.screen.blit(img_surface, (100,100)))
 
