@@ -16,7 +16,7 @@ model_path = os.path.join(crab_dir,'best_lightblur.pt')
 model_trained = YOLO(model_path)
 model_trained.to('cpu')
 
-inputs = glob.glob(os.path.join(crab_dir, 'inputs', '*.jpeg'))
+inputs = glob.glob(os.path.join(crab_dir, 'rov_photos', '*.jpeg'))
 
 for path in inputs:
     crab_count = 0
@@ -55,7 +55,7 @@ for path in inputs:
         crab_count = len(results[0].obb) if results[0].obb is not None else 0
         txt = f'Invasive Crabs Found: {crab_count}'
         size = cv2.getTextSize(txt, font, font_size, 2)
-        annotated_frame = results[0].plot(labels=False, conf=False)
+        annotated_frame = results[0].plot(labels=True, conf=True)
         annotated_frame = cv2.rectangle(annotated_frame, (pos[0]-2,pos[1]+3), (pos[0]+size[0][0], pos[1]-size[0][1]-1), (0,0,0), cv2.FILLED)
         annotated_frame = cv2.putText(annotated_frame, txt, pos, font, font_size, (255,255,255), 2)
         current_display_frame = annotated_frame
