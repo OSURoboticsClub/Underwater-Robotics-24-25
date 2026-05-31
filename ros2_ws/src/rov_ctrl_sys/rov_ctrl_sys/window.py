@@ -117,7 +117,9 @@ class Window(Node):
             'dome_lights': 0.0,
             'ext_lights': 0.0,
             'camera_x': 1500,
-            'camera_y': 1500
+            'camera_y': 1500,
+            'pressure_sensor': 1500,
+            'esp2_sensor': 1500
         }
         self.data_lock = threading.Lock()
 
@@ -147,7 +149,19 @@ class Window(Node):
             self.servo_callback,
             consistent_QoS
         )
-        self.sub_img, self.pub, self.sub_img, self.sub_motors, self.sub_servos # prevent unused variable warnings
+        self.sub_esp1 = self.create_subscription(
+            String,
+            '/rov/motor_feedback',
+            self.sensor_callback,
+            consistent_QoS
+        )
+        self.sub_esp2 = self.create_subscription(
+            String,
+            '/rov/servo_feedback',
+            self.sensor_callback,
+            consistent_QoS
+        )
+        self.sub_img, self.pub, self.sub_img, self.sub_motors, self.sub_servos, self.sub_esp1, self.sub_esp2 # prevent unused variable warnings
         self.reset_screen()
     
     def reset_screen(self):
@@ -251,6 +265,15 @@ class Window(Node):
         self.print_ROV()
 
     def servo_callback(self, msg):
+        new_values = {}
+        for pair in msg.data.split(','):
+            (servo, value) = pair.split('=')
+            new_values[servo] = float(value)
+        with self.data_lock:
+            self.data.update(new_values)
+            self.new_data = True
+
+    def sensor_callback(self, msg):
         new_values = {}
         for pair in msg.data.split(','):
             (servo, value) = pair.split('=')
