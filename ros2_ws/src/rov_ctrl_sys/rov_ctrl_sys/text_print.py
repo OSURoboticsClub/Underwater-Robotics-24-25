@@ -3,7 +3,7 @@ import pygame
 class TextPrint:
     def __init__(self):
         self.reset()
-        self._font = pygame.font.SysFont('DejaVu Sans Mono', 20)
+        self._font = pygame.font.SysFont('DejaVu Sans Mono', 15)
 
     def tprintln(self, screen, text):
         self.tprint(screen, text)
@@ -18,19 +18,19 @@ class TextPrint:
         return self
 
     def reset(self):
-        self._x = 10
-        self._y = 10
-        self._line_height = 22
+        self._x = 5
+        self._y = 0
+        self._line_height = 17
         self._x_offset = 0
         self.color = (0,0,0)
         return self
 
     def indent(self):
-        self._x += 10
+        self._x += 5
         return self
     
     def unindent(self):
-        self._x -= 10
+        self._x -= 5
         return self
     
     def get_x(self):

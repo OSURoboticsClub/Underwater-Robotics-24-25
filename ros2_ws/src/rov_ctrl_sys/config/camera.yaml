@@ -4,8 +4,9 @@
     framerate:  30.0
     io_method: "mmap"
     frame_id: "camera"
-    pixel_format: "mjpeg2rgb"
-    av_device_format: "YUV422P"
+#     pixel_format: "mjpeg2rgb"
+    pixel_format: "yuyv2rgb"
+#     av_device_format: "YUV422P"
     camera_name: "main_camera"
     camera_info_url: ''
 
