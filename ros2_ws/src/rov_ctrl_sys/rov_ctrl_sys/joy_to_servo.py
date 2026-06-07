@@ -2,7 +2,8 @@ import rclpy
 from rov_ctrl_sys.subscriber_publisher_general import SubscriberPublisher
 from rclpy.signals import SignalHandlerOptions
 import rclpy.qos as QoS
-from rcl_interfaces.msg import ParameterDescriptor
+from rcl_interfaces.msg import ParameterDescriptor, SetParametersResult
+from rclpy.parameter import Parameter
 
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
@@ -29,9 +30,21 @@ class JoyToServo(SubscriberPublisher):
             durability=QoS.DurabilityPolicy.VOLATILE
         )
         super().__init__('joy_to_servo', Joy, 'joy', String, 'servo_command', sub_qos, pub_qos)
+
+        self.declare_parameter('rotate_zero', 1500)
+        self.rotate_zero = self.get_parameter('rotate_zero').get_parameter_value().integer_value
+
+        self.declare_parameter('rotate_low', 1000)
+        self.rotate_low = self.get_parameter('rotate_low').get_parameter_value().integer_value
+
+        self.declare_parameter('rotate_high', 2000)
+        self.rotate_high = self.get_parameter('rotate_high').get_parameter_value().integer_value
+
+        self.add_on_set_parameters_callback(self._on_params_changed)
+
         self.old_values = {
                 'manip': 0.0,
-                'manip_rotate': 0.0,
+                'manip_rotate': 1500,
                 'dome_lights': 0.0,
                 'ext_lights': 0.0
         }
@@ -40,8 +53,33 @@ class JoyToServo(SubscriberPublisher):
         self.b_pressed = False
         self.commands = dict()
 
-    def process_motor(self, key, value, send_to_pwm = True):
-        value = clamp(value, -1.0, 1.0)
+    def _on_params_changed(self, params):
+        for p in params:
+            if p.name in {'rotate_zero', 'rotate_high', 'rotate_low'}:
+                if p.type_ not in {Parameter.Type.INTEGER}:
+                    return SetParametersResult(
+                        successful=False,
+                        reason='rotate values must be integers'
+                    )
+
+        for p in params:
+            if p.name in {'rotate_zero', 'rotate_high', 'rotate_low'}:
+                val = int(p.value)
+                if p.name == 'rotate_high':
+                    self.rotate_high = val
+                elif p.name == 'rotate_low':
+                    self.rotate_low = val
+                else:
+                    self.rotate_zero = val
+                self.get_logger().info(f'Set {p.name} to: {int(p.value)}')
+
+        return SetParametersResult(successful=True)
+
+
+    def process_motor(self, key, value, send_to_pwm = True, do_clamp = True):
+        if do_clamp:
+            value = clamp(value, -1.0, 1.0)
+
         if value != self.old_values[key]:
             if send_to_pwm:
                 pwm = to_pwm(value)
@@ -109,21 +147,24 @@ class JoyToServo(SubscriberPublisher):
             self.b_pressed = False
 
         if msg.buttons[4] == 1:
-            manip_rotate = 1.0
+#             manip_rotate = 1.0
+            manip_rotate = self.rotate_high
         elif msg.buttons[5] == 1:
-            manip_rotate = -1.0
+#             manip_rotate = -1.0
+            manip_rotate = self.rotate_low
         else:
-            manip_rotate = 0.0
+#             manip_rotate = 0.0
+            manip_rotate = self.rotate_zero
 
         self.process_motor('manip', manip, False)
-        self.process_motor('manip_rotate', manip_rotate)
+        self.process_motor('manip_rotate', manip_rotate, send_to_pwm=False, do_clamp=False)
         self.process_motor('dome_lights', dome_lights, False)
         self.process_motor('ext_lights', ext_lights, False)
 
         if self.commands:
             new_msg = String()
             new_msg.data = ','.join(f'{k}={v}' for k,v in self.commands.items())
-            self.get_logger().debug(f"servo_commands: {new_msg.data}")
+            self.get_logger().info(f"servo_commands: {new_msg.data}")
             return new_msg
         else:
             return None
