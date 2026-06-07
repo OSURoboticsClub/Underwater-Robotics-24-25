@@ -139,8 +139,11 @@ void process_commands(String &input) {
       int i = 1;
       double scale = value.toDouble();
       int range = motors[i].high - motors[i].low;
+      bool currently_max = motors[i].pwm == motors[i].current_max;
       motors[i].current_max = motors[i].low + int(scale * range);
-      motors[i].pwm = min(motors[i].current_max, motors[i].pwm);
+      if (currently_max) {
+        motors[i].pwm = motors[i].current_max;
+      }
     } else if (target == "manip") {
       int throttle = value.toInt();
       if (throttle == 0) {
@@ -233,7 +236,8 @@ void loop() {
     // Serial.println(output);
     // Serial.println("Hello, World!");
     // current_time = millis();
-    // Serial.println(motors[3].written_pwm);
+    Serial.print("esp2_sensor=");
+    Serial.println(motors[1].written_pwm);
   }
 
   //   if (Serial.available()) {

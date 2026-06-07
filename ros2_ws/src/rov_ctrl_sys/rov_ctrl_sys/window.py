@@ -276,10 +276,12 @@ class Window(Node):
     def sensor_callback(self, msg):
         new_values = {}
         for pair in msg.data.split(','):
-            (servo, value) = pair.split('=')
-            new_values[servo] = float(value)
+            data = pair.split('=')
+            if len(data) == 2:
+                (servo, value) = data;
+                new_values[servo] = float(value)
         with self.data_lock:
-            self.data.update(new_values)
+            self.data.update((k,v) for k,v in new_values.items() if k in self.data)
             self.new_data = True
 
     def image_callback(self, msg):
