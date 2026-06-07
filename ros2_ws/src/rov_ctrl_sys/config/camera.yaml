@@ -1,0 +1,23 @@
+/**:
+  ros__parameters:
+    video_device: "/dev/main_camera"
+    framerate:  30.0
+    io_method: "mmap"
+    frame_id: "camera"
+#     pixel_format: "mjpeg2rgb"
+    pixel_format: "yuyv2rgb"
+#     av_device_format: "YUV422P"
+    camera_name: "main_camera"
+    camera_info_url: ''
+
+    brightness: 50
+    contrast: -1
+    saturation: -1
+    sharpness: -1
+    gain: -1
+    auto_white_balance: true
+    white_balance: 4000
+    autoexposure: true
+    exposure: 100
+    autofocus: false
+    focus: -1

@@ -107,7 +107,7 @@ class KeyboardToServo(SubscriberPublisher):
             if self.target == 'camera':
                 self.process_motor(self.vertical['camera'], vertical, 1000, 2000)
             else:
-                horizontal = clamp(vertical, 0.0, 1.0)
+                vertical = clamp(vertical, 0.0, 1.0)
                 self.process_command(self.vertical[self.target], vertical)
 
         if self.horizontal[self.target] != '':

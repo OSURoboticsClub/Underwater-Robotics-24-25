@@ -1,0 +1,6 @@
+
+/**:
+  ros__parameters:
+#     pixel_format: "mjpeg2rgb"
+    image_width: 640
+    image_height: 480

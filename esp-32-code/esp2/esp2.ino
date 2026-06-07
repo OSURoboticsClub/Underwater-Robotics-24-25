@@ -44,7 +44,7 @@ struct Motor {
 
 Motor motors[] = {
   Motor(Servo(), "manip_rotate",  25), // rotates the claw
-  // Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
+  Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
   Motor(Servo(), "camera_x",  4, 1500, 1000, 2000), // change default
   Motor(Servo(), "camera_y", 16, 1500, 1000, 2000) // change defaults
 //   Motor(Servo(), "main_mover", 25), // rotates the claw
@@ -54,7 +54,8 @@ const int num_motors = 3;
 
 const int manip = 13;
 const int dome_lights = 17;
-const int ext_lights = 26;
+// const int ext_lights = 26;
+const int rotate_relay = 19;
 
 /*
    Possible input keys:
@@ -86,15 +87,15 @@ void setup() {
 
   pinMode(manip, OUTPUT);
   pinMode(dome_lights, OUTPUT);
-  pinMode(ext_lights, OUTPUT);
+//   pinMode(ext_lights, OUTPUT);
   pinMode(18, OUTPUT);
-  pinMode(19, OUTPUT);
+  pinMode(rotate_relay, OUTPUT);
 
   digitalWrite(manip, LOW);
   digitalWrite(dome_lights, LOW);
-  digitalWrite(ext_lights, LOW);
+//   digitalWrite(ext_lights, LOW);
   digitalWrite(18, HIGH);
-  digitalWrite(19, HIGH);
+  digitalWrite(rotate_relay, LOW);
 
 
 }
@@ -135,13 +136,14 @@ void process_commands(String &input) {
     } else if (target == "dome_lights_max") {
       // later will be used
     } else if (target == "ext_lights_max") {
-      /*
       int i = 1;
       double scale = value.toDouble();
       int range = motors[i].high - motors[i].low;
+      bool currently_max = motors[i].pwm == motors[i].current_max;
       motors[i].current_max = motors[i].low + int(scale * range);
-      motors[i].pwm = min(motors[i].current_max, motors[i].pwm);
-      */
+      if (currently_max) {
+        motors[i].pwm = motors[i].current_max;
+      }
     } else if (target == "manip") {
       int throttle = value.toInt();
       if (throttle == 0) {
@@ -154,6 +156,13 @@ void process_commands(String &input) {
     } else if (target == "manip_rotate") {
       int i = 0;
       int throttle = value.toInt();
+
+      if (throttle == 1500) {
+        digitalWrite(rotate_relay, LOW);
+      } else {
+        digitalWrite(rotate_relay, HIGH);
+      }
+
       if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
 //        Serial.println("Setting manipulator to new value");
         motors[i].pwm = throttle;
@@ -168,24 +177,22 @@ void process_commands(String &input) {
 //        Serial.println("Toggling dome lights on");
       }
     } else if (target == "ext_lights") {
+      /*
       int throttle = value.toInt();
       if (throttle == 0) {
         digitalWrite(ext_lights, LOW);
-//        Serial.println("Turning lights off");
       } else {
         digitalWrite(ext_lights, HIGH);
-//        Serial.println("Turning lights on");
       }
+      */
 
-      /*
-         int i = 1;
-         int throttle = value.toInt();
-         if (throttle == 0) {
-         motors[i].pwm = motors[i].low;
-         } else if (throttle == 1) {
-         motors[i].pwm = motors[i].current_max;
-         }
-         */
+      int i = 1;
+      int throttle = value.toInt();
+      if (throttle == 0) {
+        motors[i].pwm = motors[i].low;
+      } else if (throttle == 1) {
+        motors[i].pwm = motors[i].current_max;
+      }
     }
   }
 }
@@ -229,7 +236,8 @@ void loop() {
     // Serial.println(output);
     // Serial.println("Hello, World!");
     // current_time = millis();
-    // Serial.println(motors[3].written_pwm);
+    Serial.print("esp2_sensor=");
+    Serial.println(motors[1].written_pwm);
   }
 
   //   if (Serial.available()) {

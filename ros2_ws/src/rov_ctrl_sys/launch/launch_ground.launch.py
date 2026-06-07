@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, GroupAction
+from launch.actions import IncludeLaunchDescription, GroupAction, DeclareLaunchArgument
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import PushRosNamespace
 from launch_ros.substitutions import FindPackageShare
@@ -13,6 +13,7 @@ def generate_launch_description():
             IncludeLaunchDescription(
                 PathJoinSubstitution([launch_dir, 'gamepad.launch.py']),
             ),
+            DeclareLaunchArgument('fullscreen', default_value='True'),
             IncludeLaunchDescription(
                 PathJoinSubstitution([launch_dir, 'display.launch.py']),
             ),
