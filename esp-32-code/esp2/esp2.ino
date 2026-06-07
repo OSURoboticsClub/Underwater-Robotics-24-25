@@ -44,7 +44,7 @@ struct Motor {
 
 Motor motors[] = {
   Motor(Servo(), "manip_rotate",  25), // rotates the claw
-  // Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
+  Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
   Motor(Servo(), "camera_x",  4, 1500, 1000, 2000), // change default
   Motor(Servo(), "camera_y", 16, 1500, 1000, 2000) // change defaults
 //   Motor(Servo(), "main_mover", 25), // rotates the claw
@@ -54,7 +54,7 @@ const int num_motors = 3;
 
 const int manip = 13;
 const int dome_lights = 17;
-const int ext_lights = 26;
+// const int ext_lights = 26;
 const int rotate_relay = 19;
 
 /*
@@ -87,13 +87,13 @@ void setup() {
 
   pinMode(manip, OUTPUT);
   pinMode(dome_lights, OUTPUT);
-  pinMode(ext_lights, OUTPUT);
+//   pinMode(ext_lights, OUTPUT);
   pinMode(18, OUTPUT);
   pinMode(rotate_relay, OUTPUT);
 
   digitalWrite(manip, LOW);
   digitalWrite(dome_lights, LOW);
-  digitalWrite(ext_lights, LOW);
+//   digitalWrite(ext_lights, LOW);
   digitalWrite(18, HIGH);
   digitalWrite(rotate_relay, LOW);
 
@@ -136,13 +136,11 @@ void process_commands(String &input) {
     } else if (target == "dome_lights_max") {
       // later will be used
     } else if (target == "ext_lights_max") {
-      /*
       int i = 1;
       double scale = value.toDouble();
       int range = motors[i].high - motors[i].low;
       motors[i].current_max = motors[i].low + int(scale * range);
       motors[i].pwm = min(motors[i].current_max, motors[i].pwm);
-      */
     } else if (target == "manip") {
       int throttle = value.toInt();
       if (throttle == 0) {
@@ -176,24 +174,22 @@ void process_commands(String &input) {
 //        Serial.println("Toggling dome lights on");
       }
     } else if (target == "ext_lights") {
+      /*
       int throttle = value.toInt();
       if (throttle == 0) {
         digitalWrite(ext_lights, LOW);
-//        Serial.println("Turning lights off");
       } else {
         digitalWrite(ext_lights, HIGH);
-//        Serial.println("Turning lights on");
       }
+      */
 
-      /*
-         int i = 1;
-         int throttle = value.toInt();
-         if (throttle == 0) {
-         motors[i].pwm = motors[i].low;
-         } else if (throttle == 1) {
-         motors[i].pwm = motors[i].current_max;
-         }
-         */
+      int i = 1;
+      int throttle = value.toInt();
+      if (throttle == 0) {
+        motors[i].pwm = motors[i].low;
+      } else if (throttle == 1) {
+        motors[i].pwm = motors[i].current_max;
+      }
     }
   }
 }
