@@ -2,6 +2,20 @@
 #include <cstdlib>
 #include <ctime>
 
+enum motorState {
+  HEADING_TO_ZERO,
+  AT_ZERO,
+  NORMAL
+};
+
+int sign(int num) {
+  if (num < 0) {
+    return -1;
+  } else {
+    return 1;
+  }
+}
+
 struct Motor {
   Servo servo;
   const char* name;
@@ -10,6 +24,7 @@ struct Motor {
   int written_pwm;
   int offset;
   const int reverse;
+  motorState state;
 
   Motor(const Servo& servo, const char* name, const int pin, const int reverse):
     servo(servo),
@@ -18,7 +33,8 @@ struct Motor {
     reverse(reverse),
     pwm(1500),
     written_pwm(0),
-    offset(0) {
+    offset(0),
+    state(NORMAL) {
 
     }
 
@@ -29,7 +45,8 @@ struct Motor {
     reverse(reverse),
     pwm(1500),
     written_pwm(0),
-    offset(offset) {
+    offset(offset),
+    state(NORMAL) {
 
     }
 };
@@ -140,7 +157,7 @@ void process_commands(String &input) {
   }
 }
 
-const int INCREMENT = 10;
+const int MAX_INCREMENT = 10;
 
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
@@ -169,46 +186,35 @@ void loop() {
   }
     
   for (int i = 0; i < num_motors; i++) {
-    int target = motors[i].pwm + motors[i].offset - 1500;
-    int current = motors[i].written_pwm - 1500;
-    int diff = target - current;
     if (motors[i].pin != -1) {
-//       if (abs(diff) >= INCREMENT) {
-//         if (diff > 0) {
-//           motors[i].servo.writeMicroseconds(current + INCREMENT);
-//           motors[i].written_pwm = current + INCREMENT;
-//         } else {
-//           motors[i].servo.writeMicroseconds(current - INCREMENT);
-//           motors[i].written_pwm = current - INCREMENT;
-//         }
-//       } else if (abs(diff) > 0) {
-//         motors[i].servo.writeMicroseconds(target);
-//         motors[i].written_pwm = target;
-//       }
-      if (abs(current) > INCREMENT) { // Currently at least INCREMENT away from center
-          if ( (abs(diff) > INCREMENT) && // Changing at least INCREMENT AND
-              ( (abs(current) > abs(target)) || (abs(diff) > (abs(target) - abs(current))) ) ) { // Decreasing speed
-            if (diff > 0) {
-              motors[i].servo.writeMicroseconds(current + INCREMENT + 1500);
-              motors[i].written_pwm = current + INCREMENT + 1500;
-            } else {
-              motors[i].servo.writeMicroseconds(current - INCREMENT + 1500);
-              motors[i].written_pwm = current - INCREMENT + 1500;
-            }
-          } else if (abs(diff) > 0) {
-            motors[i].servo.writeMicroseconds(target + 1500);
-            motors[i].written_pwm = target + 1500;
+      int target = motors[i].pwm + motors[i].offset - 1500;
+      int current = motors[i].written_pwm - 1500;
+      switch (motors[i].state) {
+        case NORMAL:
+          if (sign(target) != sign(current)) {
+            target = 0;
           }
+
+          if (current == 0) {
+            target = 0;
+            motors[i].state = AT_ZERO;
+          }
+          break;
+        case AT_ZERO:
+          motors[i].state = NORMAL;
+          target = 0;
+          break;
+      }
+
+      int current_speed = abs(current);
+      int target_speed = abs(target);
+      if (target_speed < current_speed) {
+        int command = sign(current) * max(target_speed, current_speed - MAX_INCREMENT);
+        motors[i].servo.writeMicroseconds(command + 1500);
+        motors[i].written_pwm = command + 1500;
       } else {
-        if ( abs(diff) > abs( abs(target) - abs(current) ) ) { // Changing direction
-            // set zero
-            motors[i].servo.writeMicroseconds(1500);
-            motors[i].written_pwm = 1500;
-        } else 
-            // set target
-            motors[i].writemicroseconds(target + 1500);
-            motors[i].written_pwm = target + 1500;
-        }
+        motors[i].servo.writeMicroseconds(target + 1500);
+        motors[i].written_pwm = target + 1500;
       }
     }
   }
