@@ -50,7 +50,7 @@ Motor motors[] = {
 //   Motor(Servo(), "main_mover", 25), // rotates the claw
 //   Motor(Servo(), "left_mover", -1), // moves the syringe thingy
 };
-const int num_motors = 3;
+const int num_motors = 4;
 
 const int manip = 13;
 const int dome_lights = 17;
@@ -122,13 +122,13 @@ void process_commands(String &input) {
     value = cmd.substring(eq_index + 1);
 
     if (target == "camera_x") {
-      int i = 1;
+      int i = 2;
       int throttle = value.toInt();
       if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
         motors[i].pwm = throttle;
       }
     } else if (target == "camera_y") {
-      int i = 2;
+      int i = 3;
       int throttle = value.toInt();
       if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
         motors[i].pwm = throttle;
