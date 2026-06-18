@@ -41,7 +41,7 @@ Motor motors[] = {
   Motor(Servo(), "vfr", 16,  1), // Vertical Front Right - 4
   Motor(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
   Motor(Servo(), "vbr", 13,  1),  // Vertical Back Right - 6
-  Motor(Servo(), "lbl", 14,  1, 20), // Lateral Back Left - 7
+  Motor(Servo(), "lbl", 14,  1), // Lateral Back Left - 7
   Motor(Servo(), "lbr", 27,  1) // Lateral Back Right - 8
 
 };
@@ -185,18 +185,30 @@ void loop() {
 //         motors[i].servo.writeMicroseconds(target);
 //         motors[i].written_pwm = target;
 //       }
-      if ( (abs(diff) > INCREMENT) && 
-          ( (abs(current) > abs(target)) || (abs(diff) > (abs(target) - abs(current))) ) ) {
-        if (diff > 0) {
-          motors[i].servo.writeMicroseconds(current + INCREMENT + 1500);
-          motors[i].written_pwm = current + INCREMENT + 1500;
-        } else {
-          motors[i].servo.writeMicroseconds(current - INCREMENT + 1500);
-          motors[i].written_pwm = current - INCREMENT + 1500;
+      if (abs(current) > INCREMENT) { // Currently at least INCREMENT away from center
+          if ( (abs(diff) > INCREMENT) && // Changing at least INCREMENT AND
+              ( (abs(current) > abs(target)) || (abs(diff) > (abs(target) - abs(current))) ) ) { // Decreasing speed
+            if (diff > 0) {
+              motors[i].servo.writeMicroseconds(current + INCREMENT + 1500);
+              motors[i].written_pwm = current + INCREMENT + 1500;
+            } else {
+              motors[i].servo.writeMicroseconds(current - INCREMENT + 1500);
+              motors[i].written_pwm = current - INCREMENT + 1500;
+            }
+          } else if (abs(diff) > 0) {
+            motors[i].servo.writeMicroseconds(target + 1500);
+            motors[i].written_pwm = target + 1500;
+          }
+      } else {
+        if ( abs(diff) > abs( abs(target) - abs(current) ) ) { // Changing direction
+            // set zero
+            motors[i].servo.writeMicroseconds(1500);
+            motors[i].written_pwm = 1500;
+        } else 
+            // set target
+            motors[i].writemicroseconds(target + 1500);
+            motors[i].written_pwm = target + 1500;
         }
-      } else if (abs(diff) > 0) {
-        motors[i].servo.writeMicroseconds(target + 1500);
-        motors[i].written_pwm = target + 1500;
       }
     }
   }

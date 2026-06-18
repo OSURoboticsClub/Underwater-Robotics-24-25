@@ -179,7 +179,7 @@ class JoyToMotor(SubscriberPublisher):
             self.lateral_timer = None
         return temp
 
-    def gen_vertical_timer(self, cmds, timer):
+    def gen_vertical_timer(self, cmds):
         msg = String()
         msg.data = ','.join(f'{k}={v}' for k,v in cmds.items())
         def temp():
