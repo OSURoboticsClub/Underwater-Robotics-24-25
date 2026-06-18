@@ -3,7 +3,7 @@
 #include <ctime>
 
 enum motorState {
-  HEADING_TO_ZERO,
+  REVERSING,
   AT_ZERO,
   NORMAL
 };
@@ -11,8 +11,10 @@ enum motorState {
 int sign(int num) {
   if (num < 0) {
     return -1;
-  } else {
+  } else if (num > 0) {
     return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -149,7 +151,11 @@ void process_commands(String &input) {
     if (throttle >= 1000 && throttle <= 2000) {
       for (int i = 0; i < num_motors; i++) {
         if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
+          int old_target = motors[i].pwm;
           motors[i].pwm = 1500 + ((throttle - 1500) * motors[i].reverse);
+          if (old_target != motors[i].pwm) {
+            motors[i].state = NORMAL;
+          }
           break;
         }
       }
@@ -191,12 +197,14 @@ void loop() {
       int current = motors[i].written_pwm - 1500;
       switch (motors[i].state) {
         case NORMAL:
-          if (sign(target) != sign(current)) {
+          if ((sign(target) * sign(current)) == -1) {
+            motors[i].state = REVERSING;
             target = 0;
           }
-
+          break;
+        case REVERSING:
+          target = 0;
           if (current == 0) {
-            target = 0;
             motors[i].state = AT_ZERO;
           }
           break;
