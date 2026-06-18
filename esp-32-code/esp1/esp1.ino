@@ -35,13 +35,13 @@ struct Motor {
 };
 
 Motor motors[] = {
-  Motor(Servo(), "lfl", 19, -1), // Lateral Front Left - 1
+  Motor(Servo(), "lfl", 19,  1), // Lateral Front Left - 1
   Motor(Servo(), "lfr", 18,  1), // Lateral Front Right - 2
   Motor(Servo(), "vfl", 17,  1), // Vertical Front Left - 3
-  Motor(Servo(), "vfr", 16, -1), // Vertical Front Right - 4
+  Motor(Servo(), "vfr", 16,  1), // Vertical Front Right - 4
   Motor(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
-  Motor(Servo(), "vbr", 13, -1),  // Vertical Back Right - 6
-  Motor(Servo(), "lbl", 14, -1, 20), // Lateral Back Left - 7
+  Motor(Servo(), "vbr", 13,  1),  // Vertical Back Right - 6
+  Motor(Servo(), "lbl", 14,  1, 20), // Lateral Back Left - 7
   Motor(Servo(), "lbr", 27,  1) // Lateral Back Right - 8
 
 };
