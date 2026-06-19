@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 
-struct Motor {
+struct ServoController {
   Servo servo;
   const char* name;
   const int pin;
@@ -12,7 +12,7 @@ struct Motor {
   int pwm;
   int written_pwm;
 
-  Motor(const Servo& servo, const char* name, int pin):
+  ServoController(const Servo& servo, const char* name, int pin):
     servo(servo),
     name(name),
     pin(pin),
@@ -21,7 +21,7 @@ struct Motor {
       this->written_pwm = 0;
     }
 
-  Motor(const Servo& servo, const char* name, int pin, int default_pos):
+  ServoController(const Servo& servo, const char* name, int pin, int default_pos):
     servo(servo),
     name(name),
     pin(pin),
@@ -30,7 +30,7 @@ struct Motor {
       this->written_pwm = 0;
     }
 
-  Motor(const Servo& servo, const char* name, int pin, int default_pos, int low, int high):
+  ServoController(const Servo& servo, const char* name, int pin, int default_pos, int low, int high):
     servo(servo),
     name(name),
     pin(pin),
@@ -42,15 +42,15 @@ struct Motor {
     }
 };
 
-Motor motors[] = {
-  Motor(Servo(), "manip_rotate",  25), // rotates the claw
-  Motor(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
-  Motor(Servo(), "camera_x",  4, 1500, 1000, 2000), // change default
-  Motor(Servo(), "camera_y", 16, 1500, 1000, 2000) // change defaults
-//   Motor(Servo(), "main_mover", 25), // rotates the claw
-//   Motor(Servo(), "left_mover", -1), // moves the syringe thingy
+ServoController servos[] = {
+  ServoController(Servo(), "manip_rotate",  25), // rotates the claw
+  ServoController(Servo(), "ext_lights", 26, 1000, 1000, 1900), // change defaults
+  ServoController(Servo(), "camera_x",  4, 1500, 1000, 2000), // change default
+  ServoController(Servo(), "camera_y", 16, 1500, 1000, 2000) // change defaults
+//   ServoController(Servo(), "main_mover", 25), // rotates the claw
+//   ServoController(Servo(), "left_mover", -1), // moves the syringe thingy
 };
-const int num_motors = 4;
+const int num_servos = 4;
 
 const int manip = 13;
 const int dome_lights = 17;
@@ -77,11 +77,11 @@ void setup() {
   value.reserve(8);
   Serial.begin(115200);  // Match with Jetson's ROS node
 
-  for (int i = 0; i < num_motors; i++) {
-    if (motors[i].pin != -1) {
-      motors[i].servo.attach(motors[i].pin);
-      motors[i].servo.writeMicroseconds(motors[i].pwm); // Neutral position
-      motors[i].written_pwm = motors[i].pwm;
+  for (int i = 0; i < num_servos; i++) {
+    if (servos[i].pin != -1) {
+      servos[i].servo.attach(servos[i].pin);
+      servos[i].servo.writeMicroseconds(servos[i].pwm); // Neutral position
+      servos[i].written_pwm = servos[i].pwm;
     }
   }
 
@@ -124,25 +124,25 @@ void process_commands(String &input) {
     if (target == "camera_x") {
       int i = 2;
       int throttle = value.toInt();
-      if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
-        motors[i].pwm = throttle;
+      if (throttle >= servos[i].low && throttle <= servos[i].current_max) {
+        servos[i].pwm = throttle;
       }
     } else if (target == "camera_y") {
       int i = 3;
       int throttle = value.toInt();
-      if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
-        motors[i].pwm = throttle;
+      if (throttle >= servos[i].low && throttle <= servos[i].current_max) {
+        servos[i].pwm = throttle;
       }
     } else if (target == "dome_lights_max") {
       // later will be used
     } else if (target == "ext_lights_max") {
       int i = 1;
       double scale = value.toDouble();
-      int range = motors[i].high - motors[i].low;
-      bool currently_max = motors[i].pwm == motors[i].current_max;
-      motors[i].current_max = motors[i].low + int(scale * range);
+      int range = servos[i].high - servos[i].low;
+      bool currently_max = servos[i].pwm == servos[i].current_max;
+      servos[i].current_max = servos[i].low + int(scale * range);
       if (currently_max) {
-        motors[i].pwm = motors[i].current_max;
+        servos[i].pwm = servos[i].current_max;
       }
     } else if (target == "manip") {
       int throttle = value.toInt();
@@ -163,9 +163,9 @@ void process_commands(String &input) {
         digitalWrite(rotate_relay, HIGH);
       }
 
-      if (throttle >= motors[i].low && throttle <= motors[i].current_max) {
+      if (throttle >= servos[i].low && throttle <= servos[i].current_max) {
 //        Serial.println("Setting manipulator to new value");
-        motors[i].pwm = throttle;
+        servos[i].pwm = throttle;
       }
     } else if (target == "dome_lights") {
       int throttle = value.toInt();
@@ -189,9 +189,9 @@ void process_commands(String &input) {
       int i = 1;
       int throttle = value.toInt();
       if (throttle == 0) {
-        motors[i].pwm = motors[i].low;
+        servos[i].pwm = servos[i].low;
       } else if (throttle == 1) {
-        motors[i].pwm = motors[i].current_max;
+        servos[i].pwm = servos[i].current_max;
       }
     }
   }
@@ -223,10 +223,10 @@ void loop() {
     }
   }
 
-  for (int i = 0; i < num_motors; i++) {
-    if ((motors[i].pin != -1) && (motors[i].written_pwm != motors[i].pwm)) {
-      motors[i].servo.writeMicroseconds(motors[i].pwm);
-      motors[i].written_pwm = motors[i].pwm;
+  for (int i = 0; i < num_servos; i++) {
+    if ((servos[i].pin != -1) && (servos[i].written_pwm != servos[i].pwm)) {
+      servos[i].servo.writeMicroseconds(servos[i].pwm);
+      servos[i].written_pwm = servos[i].pwm;
     }
   }
 
@@ -237,7 +237,7 @@ void loop() {
     // Serial.println("Hello, World!");
     // current_time = millis();
     Serial.print("esp2_sensor=");
-    Serial.println(motors[1].written_pwm);
+    Serial.println(servos[1].written_pwm);
   }
 
   //   if (Serial.available()) {
@@ -266,9 +266,9 @@ void loop() {
   //           digitalWrite(target_pin, HIGH);
   //         }
   //       } else if (throttle >= 500 && throttle <= 2500) {
-  //         for (int i = 0; i < num_motors; i++) {
-  //           if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
-  //             motors[i].servo.writeMicroseconds(throttle);
+  //         for (int i = 0; i < num_servos; i++) {
+  //           if ( (target.equalsIgnoreCase(servos[i].name) && (servos[i].pin != -1) ) ) {
+  //             servos[i].servo.writeMicroseconds(throttle);
   //             break;
   //           }
   //         }

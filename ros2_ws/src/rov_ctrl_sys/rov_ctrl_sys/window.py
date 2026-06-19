@@ -279,7 +279,11 @@ class Window(Node):
             data = pair.split('=')
             if len(data) == 2:
                 (servo, value) = data;
-                new_values[servo] = float(value)
+                try:
+                    new_values[servo] = float(value)
+                except ValueError as e:
+                    self.get_logger().error(f"{e}");
+                    return
         with self.data_lock:
             self.data.update((k,v) for k,v in new_values.items() if k in self.data)
             self.new_data = True

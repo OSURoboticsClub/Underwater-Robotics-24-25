@@ -18,21 +18,25 @@ int sign(int num) {
   }
 }
 
-struct Motor {
-  Servo servo;
+struct MotorController {
+  Servo motor;
   const char* name;
   const int pin;
   int pwm;
   int written_pwm;
   int offset;
-  const int reverse;
+  const int motor_reversed;
   motorState state;
+  unsigned long stateTimer = 0;
 
-  Motor(const Servo& servo, const char* name, const int pin, const int reverse):
-    servo(servo),
+  static const unsigned int MAX_INCREMENT = 20;
+  static const unsigned long ZERO_DURATION = 1000;
+
+  MotorController(const Servo& motor, const char* name, const int pin, const int motor_reversed):
+    motor(motor),
     name(name),
     pin(pin),
-    reverse(reverse),
+    motor_reversed(motor_reversed),
     pwm(1500),
     written_pwm(0),
     offset(0),
@@ -40,11 +44,11 @@ struct Motor {
 
     }
 
-  Motor(const Servo& servo, const char* name, const int pin, const int reverse, int offset):
-    servo(servo),
+  MotorController(const Servo& motor, const char* name, const int pin, const int motor_reversed, int offset):
+    motor(motor),
     name(name),
     pin(pin),
-    reverse(reverse),
+    motor_reversed(motor_reversed),
     pwm(1500),
     written_pwm(0),
     offset(offset),
@@ -53,15 +57,15 @@ struct Motor {
     }
 };
 
-Motor motors[] = {
-  Motor(Servo(), "lfl", 19,  1), // Lateral Front Left - 1
-  Motor(Servo(), "lfr", 18,  1), // Lateral Front Right - 2
-  Motor(Servo(), "vfl", 17,  1), // Vertical Front Left - 3
-  Motor(Servo(), "vfr", 16,  1), // Vertical Front Right - 4
-  Motor(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
-  Motor(Servo(), "vbr", 13,  1),  // Vertical Back Right - 6
-  Motor(Servo(), "lbl", 14,  1), // Lateral Back Left - 7
-  Motor(Servo(), "lbr", 27,  1) // Lateral Back Right - 8
+MotorController controllers[] = {
+  MotorController(Servo(), "lfl", 19,  1), // Lateral Front Left - 1
+  MotorController(Servo(), "lfr", 18,  1), // Lateral Front Right - 2
+  MotorController(Servo(), "vfl", 17,  1), // Vertical Front Left - 3
+  MotorController(Servo(), "vfr", 16,  1), // Vertical Front Right - 4
+  MotorController(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
+  MotorController(Servo(), "vbr", 13,  1),  // Vertical Back Right - 6
+  MotorController(Servo(), "lbl", 14,  1), // Lateral Back Left - 7
+  MotorController(Servo(), "lbr", 27,  1) // Lateral Back Right - 8
 
 };
 
@@ -88,26 +92,26 @@ void setup() {
   srand(time(nullptr));
 
   for (int i = 0; i < num_motors; i++) {
-    if (motors[i].pin != -1) {
-      motors[i].servo.attach(motors[i].pin);
-      motors[i].servo.writeMicroseconds(motors[i].pwm); // Neutral position
-      motors[i].written_pwm = motors[i].pwm;
+    if (controllers[i].pin != -1) {
+      controllers[i].motor.attach(controllers[i].pin);
+      controllers[i].motor.writeMicroseconds(controllers[i].pwm); // Neutral position
+      controllers[i].written_pwm = controllers[i].pwm;
     }
   }
   delay(750);
   for (int i = 0; i < num_motors; i++) {
-    if (motors[i].pin != -1) {
-      motors[i].servo.attach(motors[i].pin);
-      motors[i].servo.writeMicroseconds(1100);
-      motors[i].written_pwm = 1100;
+    if (controllers[i].pin != -1) {
+      controllers[i].motor.attach(controllers[i].pin);
+      controllers[i].motor.writeMicroseconds(1100);
+      controllers[i].written_pwm = 1100;
     }
   }
   delay(750);
   for (int i = 0; i < num_motors; i++) {
-    if (motors[i].pin != -1) {
-      motors[i].servo.attach(motors[i].pin);
-      motors[i].servo.writeMicroseconds(motors[i].pwm); // Neutral position
-      motors[i].written_pwm = motors[i].pwm;
+    if (controllers[i].pin != -1) {
+      controllers[i].motor.attach(controllers[i].pin);
+      controllers[i].motor.writeMicroseconds(controllers[i].pwm); // Neutral position
+      controllers[i].written_pwm = controllers[i].pwm;
     }
   }
   delay(750);
@@ -139,7 +143,7 @@ void process_commands(String &input) {
 
     for (int i = 0; i < 4; i++) {
       if (target.equalsIgnoreCase(offsets[i])) {
-        motors[i].offset = throttle;
+        controllers[i].offset = throttle;
         target_found = true;
         break;
       }
@@ -150,11 +154,11 @@ void process_commands(String &input) {
 
     if (throttle >= 1000 && throttle <= 2000) {
       for (int i = 0; i < num_motors; i++) {
-        if ( (target.equalsIgnoreCase(motors[i].name) && (motors[i].pin != -1) ) ) {
-          int old_target = motors[i].pwm;
-          motors[i].pwm = 1500 + ((throttle - 1500) * motors[i].reverse);
-          if (old_target != motors[i].pwm) {
-            motors[i].state = NORMAL;
+        if ( (target.equalsIgnoreCase(controllers[i].name) && (controllers[i].pin != -1) ) ) {
+          int old_target = controllers[i].pwm;
+          controllers[i].pwm = 1500 + ((throttle - 1500) * controllers[i].motor_reversed);
+          if (old_target != controllers[i].pwm) {
+            controllers[i].state = NORMAL;
           }
           break;
         }
@@ -162,8 +166,6 @@ void process_commands(String &input) {
     }
   }
 }
-
-const int MAX_INCREMENT = 10;
 
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
@@ -192,37 +194,40 @@ void loop() {
   }
     
   for (int i = 0; i < num_motors; i++) {
-    if (motors[i].pin != -1) {
-      int target = motors[i].pwm + motors[i].offset - 1500;
-      int current = motors[i].written_pwm - 1500;
-      switch (motors[i].state) {
+    if (controllers[i].pin != -1) {
+      int target = controllers[i].pwm + controllers[i].offset - 1500;
+      int current = controllers[i].written_pwm - 1500;
+      switch (controllers[i].state) {
         case NORMAL:
           if ((sign(target) * sign(current)) == -1) {
-            motors[i].state = REVERSING;
+            controllers[i].state = REVERSING;
             target = 0;
           }
           break;
         case REVERSING:
           target = 0;
           if (current == 0) {
-            motors[i].state = AT_ZERO;
+            controllers[i].state = AT_ZERO;
+            controllers[i].stateTimer = millis();
           }
           break;
         case AT_ZERO:
-          motors[i].state = NORMAL;
           target = 0;
+          if ((millis() - controllers[i].stateTimer) >= MotorController::ZERO_DURATION) {
+            controllers[i].state = NORMAL;
+          }
           break;
       }
 
-      int current_speed = abs(current);
-      int target_speed = abs(target);
+      unsigned int current_speed = abs(current);
+      unsigned int target_speed = abs(target);
       if (target_speed < current_speed) {
-        int command = sign(current) * max(target_speed, current_speed - MAX_INCREMENT);
-        motors[i].servo.writeMicroseconds(command + 1500);
-        motors[i].written_pwm = command + 1500;
+        int command = sign(current) * max(target_speed, current_speed - MotorController::MAX_INCREMENT);
+        controllers[i].motor.writeMicroseconds(command + 1500);
+        controllers[i].written_pwm = command + 1500;
       } else {
-        motors[i].servo.writeMicroseconds(target + 1500);
-        motors[i].written_pwm = target + 1500;
+        controllers[i].motor.writeMicroseconds(target + 1500);
+        controllers[i].written_pwm = target + 1500;
       }
     }
   }
@@ -233,9 +238,10 @@ void loop() {
     // Serial.println(output);
 //     Serial.println("Hello, World!");
     current_time = millis();
-    Serial.println(analogRead(pressure_sensor));
-//     Serial.print(motors[7].pwm);
+    Serial.print("pressure_sensor=");
+//     Serial.println(analogRead(pressure_sensor));
+//     Serial.print(controllers[7].pwm);
 //     Serial.print(" , ");
-//     Serial.println(motors[7].written_pwm);
+    Serial.println(controllers[7].written_pwm);
   }
 }
