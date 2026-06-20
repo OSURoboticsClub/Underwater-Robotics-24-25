@@ -44,12 +44,36 @@ const MacAddress peer_mac({0x98, 0x3D, 0xAE, 0xA9, 0xEE, 0x44});
 
 ESP_NOW_Serial_Class NowSerial(peer_mac, ESPNOW_WIFI_CHANNEL, ESPNOW_WIFI_IF);
 
+enum floatState {
+  INITIAL,
+  SENSING,
+  WAITING,
+  SENDING
+};
+
+struct packet {
+  static inline const char companyName[8] = "EX0313A";
+  unsigned long time;
+  unsigned short pressure;
+
+  char* print(char print_str[37]) {
+    snprintf(print_str, 37, "%.7s,%lu,%hu\n", this->companyName, this->time, this->pressure);
+    return print_str;
+  }
+};
+
+packet data[1000];
 #define BUFFER_SIZE 160
 String input_string, target, output;
 void setup() {
   input_string.reserve(BUFFER_SIZE);
   target.reserve(16);
-  output.reserve(16);
+  output.reserve(BUFFER_SIZE);
+
+  
+  for (int i = 0; i < 1000; i++) {
+    data[i] = packet();
+  }
   Serial.begin(115200);
 
   Serial.print("WiFi Mode: ");
@@ -74,17 +98,12 @@ void setup() {
   Serial.println("You can now send data to the peer device using the Serial Monitor.\n");
 }
 
-enum floatState {
-  INITIAL,
-  SENSING,
-  WAITING,
-  SENDING
-};
-
 void process_command(String &input);
 
 floatState state = INITIAL;
 unsigned long timer = 0;
+unsigned short idx = 0;
+unsigned short length = 0;
 
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
@@ -113,16 +132,45 @@ void loop() {
 
   switch(state) {
     case INITIAL:
-      if ((millis() - timer) >= 100) {
-        output = "sensor data\n";
+      if ((millis() - timer) >= 1000) {
+        packet tmp = packet();
+        tmp.time = millis();
+        tmp.pressure = -1; // replace with analog read from sensor
+        char buf[37];
+        Serial.println("Sending initial packet");
+        output += tmp.print(buf);
         timer = millis();
       }
       break;
     case SENSING:
+      if (length >= 50) {
+        state = WAITING;
+        Serial.println("State: waiting");
+      } else if ( (millis() - timer) >= 100) {
+        if (length >= 1000) {
+          length = 0;
+          idx = 0;
+        }
+
+        length++;
+        data[idx].time = millis();
+        data[idx].pressure = idx;
+        idx++;
+        timer = millis();
+        Serial.println(idx);
+      }
       break;
     case WAITING:
       break;
     case SENDING:
+      if (idx > length - 1) {
+        state = WAITING;
+        Serial.println("State: waiting");
+      } else if (output == "") {
+        char buf[37];
+        output += data[idx].print(buf);
+        idx++;
+      }
       break;
   }
 
@@ -145,23 +193,24 @@ void process_command(String &input) {
     case INITIAL:
       target = "dive";
       if (input.equals(target)) {
+        idx = 0;
         state = SENSING;
       }
       break;
     case WAITING:
       target = "release";
       if (input.equals(target)) {
+        idx = 0;
         state = SENDING;
-      }
-      break;
-    default:
-      target = "reset";
-      if (input.equals(target)) {
-        state = INITIAL;
       }
       break;
   }
 
+  target = "reset";
+  if (input.equals(target)) {
+    state = INITIAL;
+  }
+  
   Serial.print("State: ");
   switch(state) {
     case INITIAL:
