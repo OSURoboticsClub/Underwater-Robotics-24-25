@@ -17,6 +17,8 @@
     To properly visualize the data being sent, set the line ending in the Serial Monitor to "Both NL & CR".
 */
 
+#include "AccelStepper.h"
+
 #include "ESP32_NOW_Serial.h"
 #include "MacAddress.h"
 #include "WiFi.h"
@@ -29,21 +31,22 @@
 // Channel to be used by the ESP-NOW protocol
 #define ESPNOW_WIFI_CHANNEL 1
 
-#if ESPNOW_WIFI_MODE_STATION          // ESP-NOW using WiFi Station mode
-#define ESPNOW_WIFI_MODE WIFI_STA     // WiFi Mode
-#define ESPNOW_WIFI_IF   WIFI_IF_STA  // WiFi Interface
-#else                                 // ESP-NOW using WiFi AP mode
-#define ESPNOW_WIFI_MODE WIFI_AP      // WiFi Mode
-#define ESPNOW_WIFI_IF   WIFI_IF_AP   // WiFi Interface
+#if ESPNOW_WIFI_MODE_STATION        // ESP-NOW using WiFi Station mode
+#define ESPNOW_WIFI_MODE WIFI_STA   // WiFi Mode
+#define ESPNOW_WIFI_IF WIFI_IF_STA  // WiFi Interface
+#else                               // ESP-NOW using WiFi AP mode
+#define ESPNOW_WIFI_MODE WIFI_AP    // WiFi Mode
+#define ESPNOW_WIFI_IF WIFI_IF_AP   // WiFi Interface
 #endif
 
 // Set the MAC address of the device that will receive the data
 // For example: F4:12:FA:40:64:4C
-const MacAddress peer_mac({0x98, 0x3D, 0xAE, 0xA9, 0xEE, 0x44});
+const MacAddress peer_mac({ 0x98, 0x3D, 0xAE, 0xA9, 0xEE, 0x44 });
 // 98:3D:AE:A9:EE:44
 
 ESP_NOW_Serial_Class NowSerial(peer_mac, ESPNOW_WIFI_CHANNEL, ESPNOW_WIFI_IF);
 
+/* Create an enum to represent the float states */
 enum floatState {
   INITIAL,
   SENSING,
@@ -51,29 +54,55 @@ enum floatState {
   SENDING
 };
 
+/* Define a data packet */
+#define PACKET_LENGTH 35
 struct packet {
   static inline const char companyName[8] = "EX0313A";
   unsigned long time;
   unsigned short pressure;
 
-  char* print(char print_str[37]) {
-    snprintf(print_str, 37, "%.7s,%lu,%hu\n", this->companyName, this->time, this->pressure);
+  char* print(char print_str[PACKET_LENGTH]) {
+    unsigned long pascals = ((unsigned long long)(this->pressure) * 1200000) / 4095;
+    double meters = ((double)(this->pressure) * 1200000) / (9.8 * 1000 * 4095);
+    snprintf(print_str, PACKET_LENGTH, "%.7s,%lu,%lu,%.2f\n", 
+      this->companyName, this->time, pascals % 10000000, meters);
     return print_str;
   }
 };
+
+/* Set pin values */
+const int stepPin = 10;
+const int dirPin = 9;
+const int buttonPin = 3;
+const int sensorPin = 2;
+
+/* Initialize stepper motor object */
+const int MAX_STEPPER_VAL = 99999;  // TODO: find this and change it
+AccelStepper stepper(
+  AccelStepper::DRIVER,
+  stepPin,
+  dirPin);
 
 packet data[1000];
 #define BUFFER_SIZE 160
 String input_string, target, output;
 void setup() {
+  /* Preemptively allocate arrays for the expected string size. */
   input_string.reserve(BUFFER_SIZE);
   target.reserve(16);
   output.reserve(BUFFER_SIZE);
 
-  
+  /* Setup hardware */
+  stepper.setMaxSpeed(200);  // TODO: maybe tune this
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  /* Initialize the data array */
   for (int i = 0; i < 1000; i++) {
     data[i] = packet();
   }
+
+
+  /* Setup wireless connection */
   Serial.begin(115200);
 
   Serial.print("WiFi Mode: ");
@@ -98,16 +127,32 @@ void setup() {
   Serial.println("You can now send data to the peer device using the Serial Monitor.\n");
 }
 
-void process_command(String &input);
+/* Forward declaration of input processing command */
+void process_command(String& input);
 
+/* Setup global variables to track data between loop cycles */
 floatState state = INITIAL;
 unsigned long timer = 0;
-unsigned short idx = 0;
-unsigned short length = 0;
+unsigned short data_idx = 0;
+unsigned short data_length = 0;
+
+// // const short lower_points[4] = {0, 0, 0, 0};
+// // offsets: 13cm from top, 47.5 from bottom
+// // const short set_points[4] = {13,0,0,0};
+// // const short upper_points[4] = {0, 0, 0, 0};
+// const short lower_points[4] = {a-e, b-e, c-e, d-e};
+// const short set_points[4] = {a,b,c,d}; // TODO: find these
+// const short upper_points[4] = {a+e, b+e, c+e, d+e};
+int set_point_num = 0;
+int data_point_num = 0;
 
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
 void loop() {
+  /* 
+  Read from the wireless serial until a newline character is received
+  Once one is received, take that whole line and pass it to the process_command function
+  */
   while (NowSerial.available()) {
     char c = NowSerial.read();
 
@@ -116,7 +161,7 @@ void loop() {
         continue;
       }
 
-      if (rx_index < (BUFFER_SIZE-1)) {
+      if (rx_index < (BUFFER_SIZE - 1)) {
         rx_buffer[rx_index++] = c;
       } else {
         rx_index = 0;
@@ -130,49 +175,108 @@ void loop() {
     }
   }
 
-  switch(state) {
-    case INITIAL:
+  /* If the button is pressed, reset the stepper motor to consider this position to be 0 */
+  bool button_pressed = !(digitalRead(buttonPin));
+  if (button_pressed) {
+    stepper.setCurrentPosition(stepper.currentPosition());
+  }
+
+  /* Control the float based on its state */
+  switch (state) {
+    case INITIAL:  // Float is waiting for dive command and constantly sending packets
+      /* If it has been at least 1 second since we sent a packet, send another one */
       if ((millis() - timer) >= 1000) {
+        // Make a packet
         packet tmp = packet();
+
+        // Set the values for the packet
         tmp.time = millis();
-        tmp.pressure = -1; // replace with analog read from sensor
-        char buf[37];
-        Serial.println("Sending initial packet");
+        tmp.pressure = analogRead(sensorPin);
+        // tmp.pressure = rand() % 4096;
+
+        // Print the packet
+        char buf[PACKET_LENGTH];
         output += tmp.print(buf);
+
+        // Start the timer
+        Serial.println("Sending initial packet");
         timer = millis();
+        stepper.setSpeed(-200.0);
       }
       break;
-    case SENSING:
-      if (length >= 50) {
+    case SENSING:  // Float is profiling/sensing
+      if (data_length >= 50) {
         state = WAITING;
         Serial.println("State: waiting");
-      } else if ( (millis() - timer) >= 100) {
-        if (length >= 1000) {
-          length = 0;
-          idx = 0;
+      } else if ((millis() - timer) >= 100) {
+        if (data_length >= 1000) {
+          data_length = 0;
+          data_idx = 0;
         }
 
-        length++;
-        data[idx].time = millis();
-        data[idx].pressure = idx;
-        idx++;
+        data_length++;
+        data[data_idx].time = millis();
+        data[data_idx].pressure = data_idx;
+        data_idx++;
         timer = millis();
-        Serial.println(idx);
+        Serial.printf("Saving datapoint #%i\n", data_idx);
       }
+
+      // if (set_point_num < 4) {
+      //   if (data_point_num < 7) {
+      //     short lower = lower_points[set_point_num];
+      //     short set_point = set_points[set_point_num];
+      //     short upper = upper_points[set_point_num];
+      //     short sensor_data = analogRead(sensorPin);
+      //     // stepper.setSpeed(controller(sensor_data, set_point));
+      //     if ( (millis() - timer) >= 5000) {
+      //       if (data_length >= 1000) {
+      //         data_length = 0;
+      //         data_idx = 0;
+      //       }
+
+      //       data_length++;
+      //       data[data_idx].time = millis();
+      //       data[data_idx].pressure = sensor_data;
+      //       data_idx++;
+      //       Serial.printf("Saving datapoint #%i\n", data_idx);
+
+      //       if ( (lower <= sensor_data) && (sensor_data <= upper) ) {
+      //         data_point_num++;
+      //       } else {
+      //         data_point_num = 0;
+      //       }
+
+      //       timer = millis();
+      //     }
+      //   } else {
+      //     set_point_num++;
+      //     data_point_num = 0;
+      //   }
+      // } else {
+      //   state = WAITING;
+      //   Serial.println("State: waiting");
+      // // }
       break;
     case WAITING:
       break;
     case SENDING:
-      if (idx > length - 1) {
+      if (data_idx > data_length - 1) {
         state = WAITING;
         Serial.println("State: waiting");
       } else if (output == "") {
-        char buf[37];
-        output += data[idx].print(buf);
-        idx++;
+        char buf[PACKET_LENGTH];
+        output += data[data_idx].print(buf);
+        data_idx++;
       }
       break;
   }
+
+  if (
+    !((stepper.speed() < 0) && (stepper.currentPosition() <= 0)) && !((stepper.speed() > 0) && (stepper.currentPosition() >= MAX_STEPPER_VAL))) {
+    stepper.run();
+  }
+
 
   while (output != "" && NowSerial.availableForWrite()) {
     char c = output[0];
@@ -180,27 +284,45 @@ void loop() {
       Serial.println("Failed to send data");
       continue;
     } else {
-      output.remove(0,1);
+      output.remove(0, 1);
     }
   }
 
   delay(1);
 }
 
-void process_command(String &input) {
+template<typename T>
+T clamp(T val, T min, T max) {
+  if (val < min) {
+    return min;
+  } else if (val > max) {
+    return max;
+  } else {
+    return val;
+  }
+}
+
+double k_p = 15.0;  // TODO: tune this
+float offset = 0.0;
+float controller(short pressure, short set_point) {
+  short err = set_point - pressure;
+  return clamp<float>(err * k_p + offset, -200.0, 200.0);
+}
+
+void process_command(String& input) {
   input.trim();
-  switch(state) {
+  switch (state) {
     case INITIAL:
       target = "dive";
       if (input.equals(target)) {
-        idx = 0;
+        data_idx = 0;
         state = SENSING;
       }
       break;
     case WAITING:
       target = "release";
       if (input.equals(target)) {
-        idx = 0;
+        data_idx = 0;
         state = SENDING;
       }
       break;
@@ -209,27 +331,23 @@ void process_command(String &input) {
   target = "reset";
   if (input.equals(target)) {
     state = INITIAL;
+    data_length = 0;
   }
-  
-  Serial.print("State: ");
-  switch(state) {
+
+  char* str;
+  switch (state) {
     case INITIAL:
-      Serial.println("initial");
+      str = "initial";
       break;
     case SENSING:
-      Serial.println("sensing");
+      str = "sensing";
       break;
     case WAITING:
-      Serial.println("waiting");
+      str = "waiting";
       break;
     case SENDING:
-      Serial.println("sending");
+      str = "sending";
       break;
   }
-
-  // Serial.println(input);
-  // if (target != "") {
-  //   Serial.println(target);
-  // }
-
+  Serial.printf("State: %s\n", str);
 }
