@@ -55,9 +55,9 @@ enum floatState {
 };
 
 /* Define a data packet */
-#define PACKET_LENGTH 35
+#define PACKET_LENGTH 32
 struct packet {
-  static inline const char companyName[8] = "EX0313A";
+  static inline const char companyName[5] = "EX31";
   unsigned long time;
   unsigned short pressure;
 
@@ -191,8 +191,8 @@ void loop() {
 
         // Set the values for the packet
         tmp.time = millis();
-        tmp.pressure = analogRead(sensorPin);
-        // tmp.pressure = rand() % 4096;
+        // tmp.pressure = analogRead(sensorPin);
+        tmp.pressure = 4095;
 
         // Print the packet
         char buf[PACKET_LENGTH];
@@ -216,7 +216,8 @@ void loop() {
 
         data_length++;
         data[data_idx].time = millis();
-        data[data_idx].pressure = data_idx;
+        // data[data_idx].pressure = data_idx;
+        data[data_idx].pressure = rand() % 4096;
         data_idx++;
         timer = millis();
         Serial.printf("Saving datapoint #%i\n", data_idx);
