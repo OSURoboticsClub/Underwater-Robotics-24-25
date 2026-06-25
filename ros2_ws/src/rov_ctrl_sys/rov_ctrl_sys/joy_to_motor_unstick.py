@@ -175,8 +175,8 @@ class JoyToMotor(SubscriberPublisher):
         def temp():
             self.publisher_.publish(msg)
             self.get_logger().info('Executing lateral timer')
-            self.lateral_timer.cancel()
-            self.lateral_timer = None
+#             self.lateral_timer.cancel()
+#             self.lateral_timer = None
         return temp
 
     def gen_vertical_timer(self, cmds):
@@ -185,8 +185,8 @@ class JoyToMotor(SubscriberPublisher):
         def temp():
             self.publisher_.publish(msg)
             self.get_logger().info('Executing vertical timer')
-            self.vertical_timer.cancel()
-            self.vertical_timer = None
+#             self.vertical_timer.cancel()
+#             self.vertical_timer = None
         return temp
 
     # msg has an axes array of length 8

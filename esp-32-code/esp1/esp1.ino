@@ -8,7 +8,8 @@ enum motorState {
   NORMAL
 };
 
-int sign(int num) {
+template<typename T>
+T sign(T num) {
   if (num < 0) {
     return -1;
   } else if (num > 0) {
@@ -16,6 +17,24 @@ int sign(int num) {
   } else {
     return 0;
   }
+}
+
+template<typename T>
+T clamp(T val, T min, T max) {
+  if (val < min) {
+    return min;
+  } else if (val > max) {
+    return max;
+  } else {
+    return val;
+  }
+}
+
+unsigned short max_allowed_vertical(unsigned short num_lateral) {
+  int max_allowed_amps = 26;
+  float used_amps = 5.5 * num_lateral;
+  float vertical_allowed_amps = min( (max_allowed_amps - used_amps) / 4.0, 0.0 );
+  return (unsigned short)( (vertical_allowed_amps / 5.5) * 500);
 }
 
 struct MotorController {
@@ -29,7 +48,7 @@ struct MotorController {
   motorState state;
   unsigned long stateTimer = 0;
 
-  static const unsigned int MAX_INCREMENT = 20;
+  static const int MAX_INCREMENT = 20;
   static const unsigned long ZERO_DURATION = 1000;
 
   MotorController(const Servo& motor, const char* name, const int pin, const int motor_reversed):
@@ -77,6 +96,8 @@ String offsets[] = {
   "lbl_offset",
   "lbr_offset"
 };
+
+unsigned short num_active_lateral = 0;
 
 const int pressure_sensor = 34;
 
@@ -154,11 +175,18 @@ void process_commands(String &input) {
 
     if (throttle >= 1000 && throttle <= 2000) {
       for (int i = 0; i < num_motors; i++) {
-        if ( (target.equalsIgnoreCase(controllers[i].name) && (controllers[i].pin != -1) ) ) {
-          int old_target = controllers[i].pwm;
-          controllers[i].pwm = 1500 + ((throttle - 1500) * controllers[i].motor_reversed);
-          if (old_target != controllers[i].pwm) {
-            controllers[i].state = NORMAL;
+        MotorController* motor = &controllers[i];
+        if ( (target.equalsIgnoreCase(motor->name) && (motor->pin != -1) ) ) {
+          int old_target = motor->pwm;
+          motor->pwm = 1500 + ((throttle - 1500) * motor->motor_reversed);
+          if (old_target != motor->pwm) {
+            motor->state = NORMAL;
+          }
+          
+          if (motor->name[0] == 'l') { // lateral motor (starts with l)
+            if ((old_target == 1500) && (motor->written_pwm == 1500) && (motor->pwm != 1500)) {
+              num_active_lateral++;
+            }
           }
           break;
         }
@@ -194,40 +222,51 @@ void loop() {
   }
     
   for (int i = 0; i < num_motors; i++) {
-    if (controllers[i].pin != -1) {
-      int target = controllers[i].pwm + controllers[i].offset - 1500;
-      int current = controllers[i].written_pwm - 1500;
-      switch (controllers[i].state) {
+    MotorController* motor = &controllers[i];
+    if (motor->pin != -1) {
+      int target = motor->pwm + motor->offset - 1500;
+      int current = motor->written_pwm - 1500;
+      switch (motor->state) {
         case NORMAL:
-          if ((sign(target) * sign(current)) == -1) {
-            controllers[i].state = REVERSING;
+          if ((sign<int>(target) * sign<int>(current)) == -1) {
+            motor->state = REVERSING;
             target = 0;
           }
           break;
         case REVERSING:
           target = 0;
           if (current == 0) {
-            controllers[i].state = AT_ZERO;
-            controllers[i].stateTimer = millis();
+            motor->state = AT_ZERO;
+            motor->stateTimer = millis();
           }
           break;
         case AT_ZERO:
           target = 0;
-          if ((millis() - controllers[i].stateTimer) >= MotorController::ZERO_DURATION) {
-            controllers[i].state = NORMAL;
+          if ((millis() - motor->stateTimer) >= MotorController::ZERO_DURATION) {
+            motor->state = NORMAL;
           }
           break;
       }
 
-      unsigned int current_speed = abs(current);
-      unsigned int target_speed = abs(target);
+      int current_speed = abs(current);
+      int target_speed = abs(target);
+
+      if ((motor->name[0]=='v') && (num_active_lateral > 0)) {
+//         target_speed = clamp<unsigned short>(target_speed, 0, max_allowed_vertical(num_active_lateral));
+      }
       if (target_speed < current_speed) {
-        int command = sign(current) * max(target_speed, current_speed - MotorController::MAX_INCREMENT);
-        controllers[i].motor.writeMicroseconds(command + 1500);
-        controllers[i].written_pwm = command + 1500;
+        int command = sign<int>(current) * max(target_speed, current_speed - MotorController::MAX_INCREMENT);
+        motor->motor.writeMicroseconds(command + 1500);
+        motor->written_pwm = command + 1500;
       } else {
-        controllers[i].motor.writeMicroseconds(target + 1500);
-        controllers[i].written_pwm = target + 1500;
+        motor->motor.writeMicroseconds(target + 1500);
+        motor->written_pwm = target + 1500;
+      }
+
+      if (motor->name[0] == 'l') { // lateral motor (starts with l)
+        if ((motor->pwm == 1500) && (motor->written_pwm == 1500) && (current != 0)) {
+          num_active_lateral--;
+        }
       }
     }
   }
@@ -238,10 +277,14 @@ void loop() {
     // Serial.println(output);
 //     Serial.println("Hello, World!");
     current_time = millis();
+//     Serial.printf("pressure_sensor=%f,esp2_sensor=%d\n", num_active_lateral, controllers[5].written_pwm);
     Serial.print("pressure_sensor=");
-//     Serial.println(analogRead(pressure_sensor));
+//     Serial.println(num_active_lateral);
+//     Serial.print("esp1_sensor=");
+//     Serial.println(controllers[5].written_pwm);
+    Serial.println(analogRead(pressure_sensor));
 //     Serial.print(controllers[7].pwm);
 //     Serial.print(" , ");
-    Serial.println(controllers[7].written_pwm);
+//     Serial.println(controllers[7].written_pwm);
   }
 }

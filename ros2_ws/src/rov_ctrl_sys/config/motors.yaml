@@ -1,7 +1,7 @@
 /ground/joy_to_motor:
   ros__parameters:
     allow_rolling: true
-    lateral_cap: 0.75
+    lateral_cap: 0.5
     lbl_mod_neg: 1.0
     lbl_mod_pos: 1.0
     lbr_mod_neg: 1.0
@@ -23,13 +23,13 @@
     roll_vfr: 1.0
     use_sim_time: false
     vbl_mod_neg: 1.0
-    vbl_mod_pos: 0.825
-    vbr_mod_neg: 0.65
+    vbl_mod_pos: 1.0
+    vbr_mod_neg: 1.0
     vbr_mod_pos: 1.0
-    vertical_cap: 1.0
+    vertical_cap: 0.75
     vfl_mod_neg: 1.0
-    vfl_mod_pos: 0.8
-    vfr_mod_neg: 0.6
+    vfl_mod_pos: 1.0
+    vfr_mod_neg: 1.0
     vfr_mod_pos: 1.0
     x_lbl: 1.0
     x_lbr: 1.0
@@ -47,7 +47,7 @@
     yaw_lfr: 1.0
     yaw_mod: 1.0
     z_lbl: 1.0
-    z_lbr: 0.5
+    z_lbr: 1.0
     z_lfl: 1.0
-    z_lfr: 0.5
+    z_lfr: 1.0
     z_mod: 1.0
