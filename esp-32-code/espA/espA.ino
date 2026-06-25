@@ -39,9 +39,13 @@
 
 // Set the MAC address of the device that will receive the data
 // For example: F4:12:FA:40:64:4C
+
 // MacAddress of Esp on float: 98:3D:AE:AB:60:30
-// MacAddress of Esp on espb: 98:3D:AE:AA:6C:C4
 const MacAddress peer_mac({0x98, 0x3D, 0xAE, 0xAB, 0x60, 0x30});
+
+// // MacAddress of Esp on espb: 98:3D:AE:AA:6C:C4
+// const MacAddress peer_mac({0x98, 0x3D, 0xAE, 0xAA, 0x6C, 0xC4});
+
 // 98:3D:AE:AA:6C:C4
 
 ESP_NOW_Serial_Class NowSerial(peer_mac, ESPNOW_WIFI_CHANNEL, ESPNOW_WIFI_IF);

@@ -51,7 +51,8 @@ enum floatState {
   INITIAL,
   SENSING,
   WAITING,
-  SENDING
+  SENDING,
+  TESTING
 };
 
 /* Define a data packet */
@@ -69,6 +70,17 @@ struct packet {
     return print_str;
   }
 };
+
+template<typename T>
+T clamp(T val, T min, T max) {
+  if (val < min) {
+    return min;
+  } else if (val > max) {
+    return max;
+  } else {
+    return val;
+  }
+}
 
 /* Set pin values */
 const int stepPin = 10;
@@ -144,6 +156,8 @@ const short upper_points[4] = {79, 29, 79, 29};
 int set_point_num = 0;
 int data_point_num = 0;
 
+int targetSteps = 0;
+
 char rx_buffer[BUFFER_SIZE];
 uint8_t rx_index = 0;
 void loop() {
@@ -167,7 +181,7 @@ void loop() {
     } else {
       rx_buffer[rx_index] = '\0';
       input_string = rx_buffer;
-      process_command(input_string);
+      process_command(input_string, targetSteps);
       rx_index = 0;
       break;
     }
@@ -197,11 +211,11 @@ void loop() {
         Serial.println("Sending initial packet");
         timer = millis();
       }
-        stepper.setSpeed(-300.0);
-        if (button_pressed) {
-          stepper.setCurrentPosition(0);
-        }
-        stepper.run();
+      stepper.setSpeed(-300.0);
+      if (button_pressed) {
+        stepper.setCurrentPosition(0);
+      }
+      stepper.run();
       break;
     case SENSING:  // Float is profiling/sensing
 //       if (data_length >= 50) {
@@ -282,6 +296,24 @@ void loop() {
         data_idx++;
       }
       break;
+    case TESTING:
+      if (button_pressed) {
+        stepper.setCurrentPosition(0);
+      }
+
+      stepper.moveTo(clamp<int>(targetSteps, 0, 1800));
+//       if (stepper.speed() < 0) {
+//         stepper.setSpeed(-300);
+//       } else if (stepper.speed() > 0) {
+        stepper.setSpeed(300);
+//       }
+      stepper.runSpeedToPosition();
+      // if ( (millis() - timer) > 100) {
+      //   output += "Hello World\n";
+      //   timer = millis();
+      // }
+      
+      break;
   }
 
 
@@ -298,17 +330,6 @@ void loop() {
   delay(1);
 }
 
-template<typename T>
-T clamp(T val, T min, T max) {
-  if (val < min) {
-    return min;
-  } else if (val > max) {
-    return max;
-  } else {
-    return val;
-  }
-}
-
 double k_p = 15.0;  // TODO: tune this
 float offset = 0.0;
 float controller(short pressure, short set_point) {
@@ -316,30 +337,35 @@ float controller(short pressure, short set_point) {
   return clamp<float>(-1 * err * k_p + offset, -300.0, 300.0);
 }
 
-void process_command(String& input) {
+void process_command(String& input, int& targetSteps) {
   input.trim();
-  switch (state) {
-    case INITIAL:
-      target = "dive";
-      if (input.equals(target)) {
-        data_idx = 0;
-        state = SENSING;
-      }
-      break;
-    case WAITING:
-      target = "release";
-      if (input.equals(target)) {
-        data_idx = 0;
-        state = SENDING;
-      }
-      break;
+  if (state == TESTING) {
+    targetSteps = input.toInt();
+  } else {
+    switch (state) {
+      case INITIAL:
+        target = "dive";
+        if (input.equals(target)) {
+          data_idx = 0;
+          state = SENSING;
+        }
+        break;
+      case WAITING:
+        target = "release";
+        if (input.equals(target)) {
+          data_idx = 0;
+          state = SENDING;
+        }
+        break;
+    }
   }
-
+  
   target = "reset";
   if (input.equals(target)) {
     state = INITIAL;
     data_length = 0;
     data_idx = 0;
+    targetSteps = -10000000;
   }
 
   target = "proceed";
@@ -357,10 +383,18 @@ void process_command(String& input) {
       case SENDING:
         state = INITIAL;
         break;
+      case TESTING:
+        state = TESTING;
+        break;
     }
     data_idx = 0;
   }
 
+  target = "testing";
+  if (input.equals(target)) {
+    state = TESTING;
+    targetSteps = 0;
+  }
 
   char* str;
   switch (state) {
@@ -375,6 +409,9 @@ void process_command(String& input) {
       break;
     case SENDING:
       str = "sending";
+      break;
+    case TESTING:
+      str = "testing";
       break;
   }
   Serial.printf("State: %s\n", str);
