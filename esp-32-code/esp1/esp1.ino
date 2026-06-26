@@ -77,9 +77,9 @@ struct MotorController {
 };
 
 MotorController controllers[] = {
-  MotorController(Servo(), "lfl", 19,  1), // Lateral Front Left - 1
+  MotorController(Servo(), "lfl", 17,  1), // Lateral Front Left - 1
   MotorController(Servo(), "lfr", 18,  1), // Lateral Front Right - 2
-  MotorController(Servo(), "vfl", 17,  1), // Vertical Front Left - 3
+  MotorController(Servo(), "vfl", 19,  1), // Vertical Front Left - 3
   MotorController(Servo(), "vfr", 16,  1), // Vertical Front Right - 4
   MotorController(Servo(), "vbl",  4,  1), // Vertical Back Left - 5
   MotorController(Servo(), "vbr", 13,  1),  // Vertical Back Right - 6
