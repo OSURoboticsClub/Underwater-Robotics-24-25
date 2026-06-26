@@ -211,11 +211,11 @@ void loop() {
         Serial.println("Sending initial packet");
         timer = millis();
       }
-      stepper.setSpeed(-300.0);
-      if (button_pressed) {
-        stepper.setCurrentPosition(0);
-      }
-      stepper.run();
+//       stepper.setSpeed(-300.0);
+//       if (button_pressed) {
+//         stepper.setCurrentPosition(0);
+//       }
+//       stepper.run();
       break;
     case SENSING:  // Float is profiling/sensing
 //       if (data_length >= 50) {
@@ -235,53 +235,82 @@ void loop() {
 //         timer = millis();
 //         Serial.printf("Saving datapoint #%i\n", data_idx);
 //       }
+//       if (button_pressed) {
+//         stepper.setCurrentPosition(0);
+//       }
+// 
+//       if (set_point_num < 4) {
+//         if (data_point_num < 7) {
+//           short lower = lower_points[set_point_num];
+//           short set_point = set_points[set_point_num];
+//           short upper = upper_points[set_point_num];
+//           short sensor_data = analogRead(sensorPin);
+//           stepper.moveTo(controller(sensor_data, set_point));
+//           stepper.setSpeed(300);
+// //           output = output + "Sensor: " + sensor_data + ", Speed: " + stepper.speed() + '\n';
+//           if ( (millis() - timer) >= 5000) {
+//             if (data_length >= 1000) {
+//               data_length = 0;
+//               data_idx = 0;
+//             }
+// 
+//             data_length++;
+//             data[data_idx].time = millis();
+//             data[data_idx].pressure = sensor_data;
+//             data_idx++;
+//             Serial.printf("Saving datapoint #%i\n", data_idx);
+// 
+//             if ( (lower <= sensor_data) && (sensor_data <= upper) ) {
+//               data_point_num++;
+//             } else {
+//               data_point_num = 0;
+//             }
+// 
+//             timer = millis();
+//           }
+//         } else {
+//           set_point_num++;
+//           data_point_num = 0;
+//         }
+//       } else {
+//         state = WAITING;
+//         Serial.println("State: waiting");
+//       }
+// 
+// //       output = output+"Current: "+stepper.currentPosition()+", Target: "+stepper.targetPosition()+'\n';
+//       if (
+//         !((stepper.speed() < 0) && (stepper.currentPosition() <= 0)) && 
+//         !((stepper.speed() > 0) && (stepper.currentPosition() >= MAX_STEPPER_VAL))
+//       ) {
+//         stepper.run();
+//       }
+      stepper.setSpeed(-300.0);
       if (button_pressed) {
         stepper.setCurrentPosition(0);
       }
-
-      if (set_point_num < 4) {
-        if (data_point_num < 7) {
-          short lower = lower_points[set_point_num];
-          short set_point = set_points[set_point_num];
-          short upper = upper_points[set_point_num];
-          short sensor_data = analogRead(sensorPin);
-          stepper.setSpeed(controller(sensor_data, set_point));
-//           output = output + "Sensor: " + sensor_data + ", Speed: " + stepper.speed() + '\n';
-          if ( (millis() - timer) >= 5000) {
-            if (data_length >= 1000) {
-              data_length = 0;
-              data_idx = 0;
-            }
-
-            data_length++;
-            data[data_idx].time = millis();
-            data[data_idx].pressure = sensor_data;
-            data_idx++;
-            Serial.printf("Saving datapoint #%i\n", data_idx);
-
-            if ( (lower <= sensor_data) && (sensor_data <= upper) ) {
-              data_point_num++;
-            } else {
-              data_point_num = 0;
-            }
-
-            timer = millis();
-          }
-        } else {
-          set_point_num++;
-          data_point_num = 0;
+      stepper.run();
+      if ( (millis() - timer) >= 5000) {
+        short sensor_data = analogRead(sensorPin);
+        if (data_length >= 1000) {
+          data_length = 0;
+          data_idx = 0;
         }
-      } else {
-        state = WAITING;
-        Serial.println("State: waiting");
-      }
 
-//       output = output+"Current: "+stepper.currentPosition()+", Target: "+stepper.targetPosition()+'\n';
-      if (
-        !((stepper.speed() < 0) && (stepper.currentPosition() <= 0)) && 
-        !((stepper.speed() > 0) && (stepper.currentPosition() >= MAX_STEPPER_VAL))
-      ) {
-        stepper.run();
+        data_length++;
+        data[data_idx].time = millis();
+        data[data_idx].pressure = sensor_data;
+        data_idx++;
+        Serial.printf("Saving datapoint #%i\n", data_idx);
+//         output = output + "Saving datapoint #" + data_idx + '\n';
+
+        data_point_num++;
+
+        timer = millis();
+      }
+      if (data_point_num >= 25) {
+        state = WAITING;
+        output += "Done diving\n";
+        Serial.println("State: waiting");
       }
       break;
     case WAITING:
@@ -296,12 +325,13 @@ void loop() {
         data_idx++;
       }
       break;
+
     case TESTING:
       if (button_pressed) {
         stepper.setCurrentPosition(0);
       }
 
-      stepper.moveTo(clamp<int>(targetSteps, 0, 1800));
+      stepper.moveTo(targetStep);
 //       if (stepper.speed() < 0) {
 //         stepper.setSpeed(-300);
 //       } else if (stepper.speed() > 0) {
@@ -330,11 +360,31 @@ void loop() {
   delay(1);
 }
 
-double k_p = 15.0;  // TODO: tune this
-float offset = 0.0;
+short descend_fast_limit = -25;
+short descend_slow_limit = -16;
+short ascend_slow_limit = 16;
+short ascend_fast_limit = 25;
+
+long descend_fast_value = 0;
+long descend_slow_value = long(MAX_STEPPER_VAL * (1.0/4.0)); // TODO find this
+long neutral_value = long(MAX_STEPPER_VAL * (2.0/4.0)); // TODO find this
+long ascend_slow_value = long(MAX_STEPPER_VAL * (3.0/4.0)); // TODO find this
+long ascend_fast_value = MAX_STEPPER_VAL;
+
 float controller(short pressure, short set_point) {
-  short err = set_point - pressure;
-  return clamp<float>(-1 * err * k_p + offset, -300.0, 300.0);
+  short diff = pressure - set_point;
+  if (diff < descend_fast_limit) {
+    return descend_fast_value;
+  } else if (diff < descend_slow_limit) {
+    return descend_slow_value;
+  } else if (diff < ascend_slow_limit) {
+    return neutral_value;
+  } else if (diff < ascend_fast_limit) {
+    return ascend_slow_value;
+  } else {
+    return ascend_fast_value;
+  }
+
 }
 
 void process_command(String& input, int& targetSteps) {
@@ -354,6 +404,7 @@ void process_command(String& input, int& targetSteps) {
         target = "release";
         if (input.equals(target)) {
           data_idx = 0;
+          output += "Releasing data\n";
           state = SENDING;
         }
         break;
@@ -366,6 +417,7 @@ void process_command(String& input, int& targetSteps) {
     data_length = 0;
     data_idx = 0;
     targetSteps = -10000000;
+    data_point_num = 0;
   }
 
   target = "proceed";
